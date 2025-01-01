@@ -26,6 +26,10 @@ pub fn Stack(comptime N: u16) type {
             return stack.stack_array[stack.position - 1];
         }
 
+        pub fn slice(stack: *Self) []Card {
+            return stack.stack_array[0..stack.position];
+        }
+
         pub fn format(
             stack: Self,
             comptime fmt: []const u8,

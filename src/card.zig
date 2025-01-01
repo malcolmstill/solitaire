@@ -17,6 +17,7 @@ pub const Card = struct {
         seven,
         eight,
         nine,
+        ten,
         jack,
         queen,
         king,
@@ -32,9 +33,10 @@ pub const Card = struct {
                 .seven => 7,
                 .eight => 8,
                 .nine => 9,
-                .jack => 10,
-                .queen => 11,
-                .king => 12,
+                .ten => 10,
+                .jack => 11,
+                .queen => 12,
+                .king => 13,
             };
         }
 
@@ -52,6 +54,7 @@ pub const Card = struct {
                 .seven => "7",
                 .eight => "8",
                 .nine => "9",
+                .ten => "10",
                 .jack => "J",
                 .queen => "Q",
                 .king => "K",
@@ -135,3 +138,17 @@ pub const CardVisual = struct {
         r.DrawRectangleRounded(rect, roundness, segments, color);
     }
 };
+
+pub var CARDS: [52]Card = generateDeck();
+
+fn generateDeck() [52]Card {
+    const arr: [52]Card = undefined;
+
+    for (std.meta.tags(Card.Suit)) |suit| {
+        for (std.meta.tags(Card.Rank)) |rank| {
+            arr.* = Card.of(suit, rank);
+        }
+    }
+
+    return arr;
+}

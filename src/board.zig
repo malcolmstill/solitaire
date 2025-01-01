@@ -1,37 +1,9 @@
+const std = @import("std");
 const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 
-const Source = enum {
-    waste,
-    row_1,
-    row_2,
-    row_3,
-    row_4,
-    row_5,
-    row_6,
-    row_7,
-    spades,
-    hearts,
-    diamonds,
-    clubs,
-};
-
-const Destination = enum {
-    row_1,
-    row_2,
-    row_3,
-    row_4,
-    row_5,
-    row_6,
-    row_7,
-    spades,
-    hearts,
-    diamonds,
-    clubs,
-};
-
 const Board = struct {
-    stock: Stack(24) = .{},
+    stock: Stack(52) = .{},
     waste: Stack(24) = .{},
 
     row_1: Stack(12) = .{},
@@ -47,8 +19,57 @@ const Board = struct {
     diamonds: Stack(12) = .{},
     clubs: Stack(12) = .{},
 
-    pub fn deal() Board {
-        const board: Board = .{};
+    pub const Source = enum {
+        waste,
+        row_1,
+        row_2,
+        row_3,
+        row_4,
+        row_5,
+        row_6,
+        row_7,
+        spades,
+        hearts,
+        diamonds,
+        clubs,
+    };
+
+    pub const Destination = enum {
+        row_1,
+        row_2,
+        row_3,
+        row_4,
+        row_5,
+        row_6,
+        row_7,
+        spades,
+        hearts,
+        diamonds,
+        clubs,
+    };
+
+    pub fn deal(seed: u64) Board {
+        var board: Board = .{};
+
+        // Generate deck
+        for (std.meta.tags(Card.Suit)) |suit| {
+            for (std.meta.tags(Card.Rank)) |rank| {
+                board.stock.push(Card.of(rank, suit));
+            }
+        }
+
+        var rnd = std.rand.DefaultPrng.init(seed);
+
+        // Shuffle the deck
+        std.Random.shuffle(rnd.random(), Card, board.stock.slice());
+
+        for (0..1) |_| board.row_1.push(board.stock.pop());
+        for (0..2) |_| board.row_2.push(board.stock.pop());
+        for (0..3) |_| board.row_3.push(board.stock.pop());
+        for (0..4) |_| board.row_4.push(board.stock.pop());
+        for (0..5) |_| board.row_5.push(board.stock.pop());
+        for (0..6) |_| board.row_6.push(board.stock.pop());
+        for (0..7) |_| board.row_7.push(board.stock.pop());
 
         return board;
     }
@@ -132,11 +153,34 @@ const Board = struct {
             },
         }
     }
+
+    pub fn format(board: Board, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = fmt;
+        _ = options;
+
+        try writer.print("board:\n", .{});
+        try writer.print("stock: {}\n", .{board.stock});
+        try writer.print("waste: {}\n", .{board.waste});
+        try writer.print("\n", .{});
+
+        try writer.print("row 1: {}\n", .{board.row_1});
+        try writer.print("row 2: {}\n", .{board.row_2});
+        try writer.print("row 3: {}\n", .{board.row_3});
+        try writer.print("row 4: {}\n", .{board.row_4});
+        try writer.print("row 5: {}\n", .{board.row_5});
+        try writer.print("row 6: {}\n", .{board.row_6});
+        try writer.print("row 7: {}\n", .{board.row_7});
+        try writer.print("\n", .{});
+
+        try writer.print("spades: {}\n", .{board.spades});
+        try writer.print("hearts: {}\n", .{board.hearts});
+        try writer.print("diamonds: {}\n", .{board.diamonds});
+        try writer.print("clubs: {}\n", .{board.clubs});
+    }
 };
 
 test "Board" {
-    const std = @import("std");
-    var board = Board.deal();
+    var board = Board.deal(std.crypto.random.int(u64));
 
     board.waste.push(Card.of(.ace, .hearts));
     board.waste.push(Card.of(.ace, .spades));
