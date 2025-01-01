@@ -23,3 +23,10 @@ pub fn main() !void {
         card.draw();
     }
 }
+
+test {
+    _ = @import("card.zig");
+    _ = @import("board.zig");
+    _ = @import("point.zig");
+    _ = @import("stack.zig");
+}
