@@ -1,8 +1,22 @@
 const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 
-const Place = enum {
+const Source = enum {
     waste,
+    row_1,
+    row_2,
+    row_3,
+    row_4,
+    row_5,
+    row_6,
+    row_7,
+    spades,
+    hearts,
+    diamonds,
+    clubs,
+};
+
+const Destination = enum {
     row_1,
     row_2,
     row_3,
@@ -40,9 +54,25 @@ const Board = struct {
     }
 
     /// Return the card on top of place (without popping)
-    fn peekTopOf(board: *Board, place: Place) ?Card {
-        return switch (place) {
+    fn peekSource(board: *Board, source: Source) ?Card {
+        return switch (source) {
             .waste => board.waste.peek(),
+            .row_1 => board.row_1.peek(),
+            .row_2 => board.row_2.peek(),
+            .row_3 => board.row_3.peek(),
+            .row_4 => board.row_4.peek(),
+            .row_5 => board.row_5.peek(),
+            .row_6 => board.row_6.peek(),
+            .row_7 => board.row_7.peek(),
+            .spades => board.spades.peek(),
+            .hearts => board.hearts.peek(),
+            .diamonds => board.diamonds.peek(),
+            .clubs => board.clubs.peek(),
+        };
+    }
+
+    fn peekDestination(board: *Board, destination: Destination) ?Card {
+        return switch (destination) {
             .row_1 => board.row_1.peek(),
             .row_2 => board.row_2.peek(),
             .row_3 => board.row_3.peek(),
@@ -60,12 +90,11 @@ const Board = struct {
     /// Check if move is valid
     ///
     /// Panics if `from` is empty.
-    pub fn isMoveValid(board: *Board, move: struct { from: Place, to: Place }) bool {
-        const from = board.peekTopOf(move.from) orelse unreachable;
-        const maybe_to = board.peekTopOf(move.to);
+    pub fn isMoveValid(board: *Board, move: struct { from: Source, to: Destination }) bool {
+        const from = board.peekSource(move.from) orelse unreachable;
+        const maybe_to = board.peekDestination(move.to);
 
         switch (move.to) {
-            .waste => return false,
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {
                 if (maybe_to) |to| {
                     // We can place our from card on the to row stack if the colours are different and
