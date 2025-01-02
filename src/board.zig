@@ -92,7 +92,7 @@ const Board = struct {
         };
     }
 
-    fn peekDestination(board: *Board, destination: Destination) ?Card {
+    fn peekDestination(board: Board, destination: Destination) ?Card {
         return switch (destination) {
             .row_1 => board.row_1.peek(),
             .row_2 => board.row_2.peek(),
@@ -108,22 +108,46 @@ const Board = struct {
         };
     }
 
+    pub fn move(board: Board, card: Card, dest: Destination) !Board {
+        if (!board.isMoveValid(card, dest)) return error.InvalidMove;
+
+        var new_board = board;
+
+        // TODO: reinstate this
+        // defer std.debug.assert(new_board.count() == 54);
+
+        switch (dest) {
+            .row_1 => new_board.row_1.push(card),
+            .row_2 => new_board.row_2.push(card),
+            .row_3 => new_board.row_3.push(card),
+            .row_4 => new_board.row_4.push(card),
+            .row_5 => new_board.row_5.push(card),
+            .row_6 => new_board.row_6.push(card),
+            .row_7 => new_board.row_7.push(card),
+            .spades => new_board.spades.push(card),
+            .hearts => new_board.hearts.push(card),
+            .diamonds => new_board.diamonds.push(card),
+            .clubs => new_board.clubs.push(card),
+        }
+
+        return new_board;
+    }
+
     /// Check if move is valid
     ///
     /// Panics if `from` is empty.
-    pub fn isMoveValid(board: *Board, move: struct { from: Source, to: Destination }) bool {
-        const from = board.peekSource(move.from) orelse unreachable;
-        const maybe_to = board.peekDestination(move.to);
+    pub fn isMoveValid(board: Board, card: Card, dest: Destination) bool {
+        const dest_top = board.peekDestination(dest);
 
-        switch (move.to) {
+        switch (dest) {
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {
-                if (maybe_to) |to| {
+                if (dest_top) |top| {
                     // We can place our from card on the to row stack if the colours are different and
                     // the from card is one less than the row stack top
-                    if (to.color() != from.color() and from.order() == to.order() - 1) return true;
+                    if (top.color() != card.color() and card.order() == top.order() - 1) return true;
                 } else {
                     // We can move a king onto a blank row stack
-                    if (from.rank == .king) return true;
+                    if (card.rank == .king) return true;
                 }
 
                 return false;
@@ -133,7 +157,7 @@ const Board = struct {
             .diamonds,
             .clubs,
             => {
-                const dest_suit: Card.Suit = switch (move.to) {
+                const dest_suit: Card.Suit = switch (dest) {
                     .spades => .spades,
                     .hearts => .hearts,
                     .diamonds => .diamonds,
@@ -141,12 +165,12 @@ const Board = struct {
                     else => unreachable,
                 };
 
-                if (maybe_to) |to| {
+                if (dest_top) |to| {
                     // Our stack is blank, we only allow ace
-                    if (from.suit == dest_suit and from.order() == to.order() - 1) return true;
+                    if (card.suit == dest_suit and card.order() == to.order() - 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace
-                    if (from.suit == dest_suit and from.rank == .ace) return true;
+                    if (card.suit == dest_suit and card.rank == .ace) return true;
                 }
 
                 return false;
@@ -154,11 +178,34 @@ const Board = struct {
         }
     }
 
+    /// Return number of cards on board
+    pub fn count(board: Board) usize {
+        var n: usize = 0;
+
+        n += board.stock.count();
+        n += board.waste.count();
+
+        n += board.row_1.count();
+        n += board.row_2.count();
+        n += board.row_3.count();
+        n += board.row_4.count();
+        n += board.row_5.count();
+        n += board.row_6.count();
+        n += board.row_7.count();
+
+        n += board.spades.count();
+        n += board.hearts.count();
+        n += board.diamonds.count();
+        n += board.clubs.count();
+
+        return n;
+    }
+
     pub fn format(board: Board, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
         _ = fmt;
         _ = options;
 
-        try writer.print("board:\n", .{});
+        try writer.print("board ({} cards):\n", .{board.count()});
         try writer.print("stock: {}\n", .{board.stock});
         try writer.print("waste: {}\n", .{board.waste});
         try writer.print("\n", .{});
@@ -187,8 +234,9 @@ test "Board" {
 
     std.debug.print("board = {any}\n", .{board});
 
-    try std.testing.expectEqual(true, board.isMoveValid(.{ .from = .waste, .to = .spades }));
-    try std.testing.expectEqual(false, board.isMoveValid(.{ .from = .waste, .to = .hearts }));
-    try std.testing.expectEqual(false, board.isMoveValid(.{ .from = .waste, .to = .diamonds }));
-    try std.testing.expectEqual(false, board.isMoveValid(.{ .from = .waste, .to = .clubs }));
+    try std.testing.expectEqual(true, board.isMoveValid(Card.of(.ace, .spades), .spades));
+    try std.testing.expectEqual(false, board.isMoveValid(Card.of(.ace, .hearts), .spades));
+
+    const new_board = board.move(Card.of(.ace, .spades), .spades);
+    std.debug.print("new board = {any}\n", .{new_board});
 }

@@ -20,7 +20,7 @@ pub fn Stack(comptime N: u16) type {
             return stack.stack_array[stack.position - 1];
         }
 
-        pub fn peek(stack: *Self) ?Card {
+        pub fn peek(stack: Self) ?Card {
             if (stack.position == 0) return null;
 
             return stack.stack_array[stack.position - 1];
@@ -28,6 +28,10 @@ pub fn Stack(comptime N: u16) type {
 
         pub fn slice(stack: *Self) []Card {
             return stack.stack_array[0..stack.position];
+        }
+
+        pub fn count(stack: Self) usize {
+            return stack.position;
         }
 
         pub fn format(
