@@ -2,15 +2,19 @@ const std = @import("std");
 const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
 
-const Game = struct {
+pub const Game = struct {
     board: Board,
     history: std.ArrayList(Board),
 
     pub fn init(allocator: std.mem.Allocator) Game {
         return .{
-            .board = Board.deal(),
+            .board = Board.deal(0),
             .history = std.ArrayList(Board).init(allocator),
         };
+    }
+
+    pub fn deinit(game: *Game) void {
+        game.history.deinit();
     }
 
     pub fn update(game: *Game, card: Card, dest: Board.Destination) !void {

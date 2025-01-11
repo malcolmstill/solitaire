@@ -2,11 +2,18 @@ const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
 
 const CardVisual = @import("card.zig").CardVisual;
+const Game = @import("game.zig").Game;
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+
     r.InitWindow(600, 400, "");
     r.SetTargetFPS(60);
     defer r.CloseWindow();
+
+    var game = Game.init(allocator);
+    defer game.deinit();
 
     // Ideally we'd turn this on:
     //

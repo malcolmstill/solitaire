@@ -2,7 +2,7 @@ const std = @import("std");
 const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 
-const Board = struct {
+pub const Board = struct {
     stock: Stack(52) = .{},
     waste: Stack(24) = .{},
 
