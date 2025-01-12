@@ -25,4 +25,60 @@ pub const Game = struct {
 
         game.board = board;
     }
+
+    pub fn draw(game: *Game) void {
+        for (game.board.stock.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.waste.slice()) |card| {
+            card.draw();
+        }
+
+        // Rows
+        for (game.board.row_1.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.row_2.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.row_3.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.row_4.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.row_5.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.row_6.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.row_7.slice()) |card| {
+            card.draw();
+        }
+
+        // Suit piles
+        for (game.board.spades.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.hearts.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.diamonds.slice()) |card| {
+            card.draw();
+        }
+
+        for (game.board.clubs.slice()) |card| {
+            card.draw();
+        }
+    }
 };

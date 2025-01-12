@@ -47,14 +47,7 @@ pub fn main() !void {
 
         r.ClearBackground(r.GRAY);
 
-        const card: CardVisual = .{
-            .locus = .{
-                .x = 40.0,
-                .y = 40.0,
-            },
-        };
-
-        card.draw();
+        game.draw();
     }
 }
 

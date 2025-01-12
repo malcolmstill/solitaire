@@ -1,23 +1,49 @@
 const std = @import("std");
 const Card = @import("card.zig").Card;
+const Point = @import("point.zig").Point;
+const CardState = @import("card_state.zig").CardState;
 const Stack = @import("stack.zig").Stack;
 
+pub const STOCK_LOCUS: Point = .{ .x = 20, .y = 20 };
+pub const WASTE_LOCUS: Point = .{ .x = 90, .y = 20 };
+
+const ROW_Y = 120;
+const HORIZONTAL_PADDING = 10;
+const CARD_WIDTH = 60;
+
+fn stack_x(comptime i: f64) f64 {
+    return 2 * HORIZONTAL_PADDING + i * (CARD_WIDTH + HORIZONTAL_PADDING);
+}
+
+pub const ROW_1_LOCUS: Point = .{ .x = stack_x(0), .y = ROW_Y };
+pub const ROW_2_LOCUS: Point = .{ .x = stack_x(1), .y = ROW_Y };
+pub const ROW_3_LOCUS: Point = .{ .x = stack_x(2), .y = ROW_Y };
+pub const ROW_4_LOCUS: Point = .{ .x = stack_x(3), .y = ROW_Y };
+pub const ROW_5_LOCUS: Point = .{ .x = stack_x(4), .y = ROW_Y };
+pub const ROW_6_LOCUS: Point = .{ .x = stack_x(5), .y = ROW_Y };
+pub const ROW_7_LOCUS: Point = .{ .x = stack_x(6), .y = ROW_Y };
+
+pub const SPADES_LOCUS: Point = .{ .x = 370, .y = 20 };
+pub const HEARTS_LOCUS: Point = .{ .x = 440, .y = 20 };
+pub const DIAMONDS_LOCUS: Point = .{ .x = 510, .y = 20 };
+pub const CLUBS_LOCUS: Point = .{ .x = 580, .y = 20 };
+
 pub const Board = struct {
-    stock: Stack(52) = .{},
-    waste: Stack(24) = .{},
+    stock: Stack(52) = .{ .locus = STOCK_LOCUS },
+    waste: Stack(24) = .{ .locus = WASTE_LOCUS },
 
-    row_1: Stack(12) = .{},
-    row_2: Stack(12) = .{},
-    row_3: Stack(12) = .{},
-    row_4: Stack(12) = .{},
-    row_5: Stack(12) = .{},
-    row_6: Stack(12) = .{},
-    row_7: Stack(12) = .{},
+    row_1: Stack(12) = .{ .locus = ROW_1_LOCUS },
+    row_2: Stack(12) = .{ .locus = ROW_2_LOCUS },
+    row_3: Stack(12) = .{ .locus = ROW_3_LOCUS },
+    row_4: Stack(12) = .{ .locus = ROW_4_LOCUS },
+    row_5: Stack(12) = .{ .locus = ROW_5_LOCUS },
+    row_6: Stack(12) = .{ .locus = ROW_6_LOCUS },
+    row_7: Stack(12) = .{ .locus = ROW_7_LOCUS },
 
-    spades: Stack(12) = .{},
-    hearts: Stack(12) = .{},
-    diamonds: Stack(12) = .{},
-    clubs: Stack(12) = .{},
+    spades: Stack(12) = .{ .locus = SPADES_LOCUS },
+    hearts: Stack(12) = .{ .locus = HEARTS_LOCUS },
+    diamonds: Stack(12) = .{ .locus = DIAMONDS_LOCUS },
+    clubs: Stack(12) = .{ .locus = CLUBS_LOCUS },
 
     pub const Source = enum {
         waste,
@@ -54,14 +80,14 @@ pub const Board = struct {
         // Generate deck
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
-                board.stock.push(Card.of(rank, suit));
+                board.stock.push(CardState.of(rank, suit, .facedown, .{ .x = 20, .y = 20 }));
             }
         }
 
         var rnd = std.rand.DefaultPrng.init(seed);
 
         // Shuffle the deck
-        std.Random.shuffle(rnd.random(), Card, board.stock.slice());
+        std.Random.shuffle(rnd.random(), CardState, board.stock.slice());
 
         for (0..1) |_| board.row_1.push(board.stock.pop());
         for (0..2) |_| board.row_2.push(board.stock.pop());
