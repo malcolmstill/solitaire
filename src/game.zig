@@ -1,15 +1,28 @@
 const std = @import("std");
 const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
+const CardState = @import("card_state.zig").CardState;
+
+// We need some sort of game state that at a minimum tells
+// us if we have a card in hand.
+//
+// Maybe it also needs to contain the board. And we need to distinguish
+// I think from a a temporary change, i.e. picking up a card, with a complete
+// move that changes the state of the board.
+const GameState = struct {
+    card_in_hand: ?CardState = null,
+};
 
 pub const Game = struct {
     board: Board,
     history: std.ArrayList(Board),
+    state: GameState,
 
     pub fn init(allocator: std.mem.Allocator) Game {
         return .{
             .board = Board.deal(0),
             .history = std.ArrayList(Board).init(allocator),
+            .state = .{},
         };
     }
 
