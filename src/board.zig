@@ -28,17 +28,19 @@ pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20 };
 pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20 };
 pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20 };
 
+pub const CARD_STACK_OFFSET = 8.0;
+
 pub const Board = struct {
     stock: Stack(52) = .{ .locus = STOCK_LOCUS },
     waste: Stack(24) = .{ .locus = WASTE_LOCUS },
 
-    row_1: Stack(12) = .{ .locus = ROW_1_LOCUS },
-    row_2: Stack(12) = .{ .locus = ROW_2_LOCUS },
-    row_3: Stack(12) = .{ .locus = ROW_3_LOCUS },
-    row_4: Stack(12) = .{ .locus = ROW_4_LOCUS },
-    row_5: Stack(12) = .{ .locus = ROW_5_LOCUS },
-    row_6: Stack(12) = .{ .locus = ROW_6_LOCUS },
-    row_7: Stack(12) = .{ .locus = ROW_7_LOCUS },
+    row_1: Stack(12) = .{ .locus = ROW_1_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_2: Stack(12) = .{ .locus = ROW_2_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_3: Stack(12) = .{ .locus = ROW_3_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_4: Stack(12) = .{ .locus = ROW_4_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_5: Stack(12) = .{ .locus = ROW_5_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_6: Stack(12) = .{ .locus = ROW_6_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_7: Stack(12) = .{ .locus = ROW_7_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
 
     spades: Stack(12) = .{ .locus = SPADES_LOCUS },
     hearts: Stack(12) = .{ .locus = HEARTS_LOCUS },

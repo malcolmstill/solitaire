@@ -10,6 +10,7 @@ pub fn Stack(comptime N: u16) type {
         stack_array: [N]CardState = undefined,
         position: u8 = 0,
         locus: Point,
+        card_index_offset: f32 = 0.0,
 
         const Self = @This();
 
@@ -18,6 +19,8 @@ pub fn Stack(comptime N: u16) type {
 
             var repositioned_card_state = card_state;
             repositioned_card_state.locus = stack.locus;
+
+            repositioned_card_state.locus.y = repositioned_card_state.locus.y + @as(f32, @floatFromInt(stack.position)) * stack.card_index_offset;
 
             stack.stack_array[stack.position] = repositioned_card_state;
         }
@@ -43,16 +46,20 @@ pub fn Stack(comptime N: u16) type {
         }
 
         pub fn draw(stack: *Self) void {
-            const height = CardState.CARD_RATIO * CardState.CARD_WIDTH;
-            const offset = 0;
+            // Draw empty stack
+            {
+                const height = CardState.CARD_RATIO * CardState.CARD_WIDTH;
+                const offset = 0;
 
-            const emptyRect = .{ .x = stack.locus.x + offset, .y = stack.locus.y + offset, .width = CardState.CARD_WIDTH, .height = height };
-            const emptyColour = .{ .a = 50, .r = 76, .g = 76, .b = 76 };
+                const emptyRect = .{ .x = stack.locus.x + offset, .y = stack.locus.y + offset, .width = CardState.CARD_WIDTH, .height = height };
+                const emptyColour = .{ .a = 50, .r = 76, .g = 76, .b = 76 };
 
-            const roundness = 0.25;
-            const segments = 20;
-            r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+                const roundness = 0.25;
+                const segments = 20;
+                r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+            }
 
+            // Draw cards in stack
             for (stack.slice()) |card| {
                 card.draw();
             }

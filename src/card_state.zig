@@ -17,6 +17,9 @@ pub const CardState = struct {
     pub const CARD_BACK_GUTTER = 6.0;
     pub const CARD_BACK_WIDTH = CARD_WIDTH - 2 * CARD_BACK_GUTTER;
     pub const CARD_BACK_HEIGHT = CARD_HEIGHT - 2 * CARD_BACK_GUTTER;
+    pub const CARD_STROKE = 1.0;
+    pub const CARD_STROKE_WIDTH = CARD_WIDTH + 2.0 * CARD_STROKE;
+    pub const CARD_STROKE_HEIGHT = CARD_HEIGHT + 2.0 * CARD_STROKE;
 
     const Direction = enum {
         facedown,
@@ -34,22 +37,31 @@ pub const CardState = struct {
 
     pub fn draw(card: CardState) void {
         const height = card.ratio * card.width;
-        const offset = card.width * 0.05;
-
-        const rect = .{ .x = card.locus.x, .y = card.locus.y, .width = card.width, .height = height };
-        const shadowRect = .{ .x = card.locus.x + offset, .y = card.locus.y + offset, .width = card.width, .height = height };
-
-        const color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
-        const shadowColor = .{ .a = 120, .r = 76, .g = 76, .b = 76 };
 
         const roundness = 0.25;
         const segments = 20;
 
         // Draw shadow
-        r.DrawRectangleRounded(shadowRect, roundness, segments, shadowColor);
+        {
+            const offset = card.width * 0.05;
+            const shadowRect = .{ .x = card.locus.x + offset, .y = card.locus.y + offset, .width = card.width, .height = height };
+            const shadowColor = .{ .a = 120, .r = 76, .g = 76, .b = 76 };
+            r.DrawRectangleRounded(shadowRect, roundness, segments, shadowColor);
+        }
+
+        // TODO: draw outline
+        {
+            const rect = .{ .x = card.locus.x - CARD_STROKE, .y = card.locus.y - CARD_STROKE, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
+            const color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+            r.DrawRectangleRounded(rect, roundness, segments, color);
+        }
 
         // Draw body
-        r.DrawRectangleRounded(rect, roundness, segments, color);
+        {
+            const rect = .{ .x = card.locus.x, .y = card.locus.y, .width = card.width, .height = height };
+            const color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+            r.DrawRectangleRounded(rect, roundness, segments, color);
+        }
 
         // Conditionally draw card back
         switch (card.direction) {
@@ -60,7 +72,5 @@ pub const CardState = struct {
             },
             .faceup => {},
         }
-
-        // TODO: draw outline
     }
 };
