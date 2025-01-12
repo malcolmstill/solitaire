@@ -13,6 +13,10 @@ pub const CardState = struct {
 
     pub const CARD_WIDTH = 60.0;
     pub const CARD_RATIO = 1.4;
+    pub const CARD_HEIGHT = CARD_WIDTH * CARD_RATIO;
+    pub const CARD_BACK_GUTTER = 6.0;
+    pub const CARD_BACK_WIDTH = CARD_WIDTH - 2 * CARD_BACK_GUTTER;
+    pub const CARD_BACK_HEIGHT = CARD_HEIGHT - 2 * CARD_BACK_GUTTER;
 
     const Direction = enum {
         facedown,
@@ -46,6 +50,16 @@ pub const CardState = struct {
 
         // Draw body
         r.DrawRectangleRounded(rect, roundness, segments, color);
+
+        // Conditionally draw card back
+        switch (card.direction) {
+            .facedown => {
+                const backRect = .{ .x = card.locus.x + CARD_BACK_GUTTER, .y = card.locus.y + CARD_BACK_GUTTER, .width = CARD_BACK_WIDTH, .height = CARD_BACK_HEIGHT };
+                const backColor = .{ .a = 200, .r = 220, .g = 50, .b = 50 };
+                r.DrawRectangleRounded(backRect, 0.15, segments, backColor);
+            },
+            .faceup => {},
+        }
 
         // TODO: draw outline
     }
