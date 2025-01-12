@@ -37,6 +37,14 @@ pub fn Stack(comptime N: u16) type {
             return stack.stack_array[stack.position - 1];
         }
 
+        pub fn flipTop(stack: *Self) void {
+            std.debug.assert(stack.position > 0);
+
+            const new_direction = stack.stack_array[stack.position - 1].direction.flip();
+
+            stack.stack_array[stack.position - 1].direction = new_direction;
+        }
+
         pub fn slice(stack: *Self) []CardState {
             return stack.stack_array[0..stack.position];
         }

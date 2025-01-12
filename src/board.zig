@@ -28,7 +28,7 @@ pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20 };
 pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20 };
 pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20 };
 
-pub const CARD_STACK_OFFSET = 8.0;
+pub const CARD_STACK_OFFSET = 9.0;
 
 pub const Board = struct {
     stock: Stack(52) = .{ .locus = STOCK_LOCUS },
@@ -98,6 +98,14 @@ pub const Board = struct {
         for (0..5) |_| board.row_5.push(board.stock.pop());
         for (0..6) |_| board.row_6.push(board.stock.pop());
         for (0..7) |_| board.row_7.push(board.stock.pop());
+
+        board.row_1.flipTop();
+        board.row_2.flipTop();
+        board.row_3.flipTop();
+        board.row_4.flipTop();
+        board.row_5.flipTop();
+        board.row_6.flipTop();
+        board.row_7.flipTop();
 
         return board;
     }
