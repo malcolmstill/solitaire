@@ -1,4 +1,7 @@
 const std = @import("std");
+
+const r = @cImport(@cInclude("raylib.h"));
+
 const Point = @import("point.zig").Point;
 const CardState = @import("card_state.zig").CardState;
 
@@ -37,6 +40,22 @@ pub fn Stack(comptime N: u16) type {
 
         pub fn count(stack: Self) usize {
             return stack.position;
+        }
+
+        pub fn draw(stack: *Self) void {
+            const height = CardState.CARD_RATIO * CardState.CARD_WIDTH;
+            const offset = 0;
+
+            const emptyRect = .{ .x = stack.locus.x + offset, .y = stack.locus.y + offset, .width = CardState.CARD_WIDTH, .height = height };
+            const emptyColour = .{ .a = 50, .r = 76, .g = 76, .b = 76 };
+
+            const roundness = 0.25;
+            const segments = 20;
+            r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+
+            for (stack.slice()) |card| {
+                card.draw();
+            }
         }
 
         pub fn format(

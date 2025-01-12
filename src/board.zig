@@ -23,10 +23,10 @@ pub const ROW_5_LOCUS: Point = .{ .x = stack_x(4), .y = ROW_Y };
 pub const ROW_6_LOCUS: Point = .{ .x = stack_x(5), .y = ROW_Y };
 pub const ROW_7_LOCUS: Point = .{ .x = stack_x(6), .y = ROW_Y };
 
-pub const SPADES_LOCUS: Point = .{ .x = 370, .y = 20 };
-pub const HEARTS_LOCUS: Point = .{ .x = 440, .y = 20 };
-pub const DIAMONDS_LOCUS: Point = .{ .x = 510, .y = 20 };
-pub const CLUBS_LOCUS: Point = .{ .x = 580, .y = 20 };
+pub const SPADES_LOCUS: Point = .{ .x = stack_x(4), .y = 20 };
+pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20 };
+pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20 };
+pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20 };
 
 pub const Board = struct {
     stock: Stack(52) = .{ .locus = STOCK_LOCUS },

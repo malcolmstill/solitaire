@@ -27,58 +27,23 @@ pub const Game = struct {
     }
 
     pub fn draw(game: *Game) void {
-        for (game.board.stock.slice()) |card| {
-            card.draw();
-        }
+        game.board.stock.draw();
 
-        for (game.board.waste.slice()) |card| {
-            card.draw();
-        }
+        game.board.waste.draw();
 
         // Rows
-        for (game.board.row_1.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.row_2.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.row_3.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.row_4.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.row_5.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.row_6.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.row_7.slice()) |card| {
-            card.draw();
-        }
+        game.board.row_1.draw();
+        game.board.row_2.draw();
+        game.board.row_3.draw();
+        game.board.row_4.draw();
+        game.board.row_5.draw();
+        game.board.row_6.draw();
+        game.board.row_7.draw();
 
         // Suit piles
-        for (game.board.spades.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.hearts.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.diamonds.slice()) |card| {
-            card.draw();
-        }
-
-        for (game.board.clubs.slice()) |card| {
-            card.draw();
-        }
+        game.board.spades.draw();
+        game.board.hearts.draw();
+        game.board.diamonds.draw();
+        game.board.clubs.draw();
     }
 };

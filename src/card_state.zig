@@ -8,8 +8,11 @@ pub const CardState = struct {
     card: Card,
     direction: Direction,
 
-    width: f32 = 60.0,
-    ratio: f32 = 1.4,
+    width: f32 = CARD_WIDTH,
+    ratio: f32 = CARD_RATIO,
+
+    pub const CARD_WIDTH = 60.0;
+    pub const CARD_RATIO = 1.4;
 
     const Direction = enum {
         facedown,
@@ -38,7 +41,12 @@ pub const CardState = struct {
         const roundness = 0.25;
         const segments = 20;
 
+        // Draw shadow
         r.DrawRectangleRounded(shadowRect, roundness, segments, shadowColor);
+
+        // Draw body
         r.DrawRectangleRounded(rect, roundness, segments, color);
+
+        // TODO: draw outline
     }
 };
