@@ -34,12 +34,28 @@ pub const CardState = struct {
     };
 
     pub fn of(
-        rank: Card.Rank,
-        suit: Card.Suit,
+        rnk: Card.Rank,
+        sut: Card.Suit,
         direction: Direction,
         locus: Point,
     ) CardState {
-        return .{ .card = Card.of(rank, suit), .locus = locus, .direction = direction };
+        return .{ .card = Card.of(rnk, sut), .locus = locus, .direction = direction };
+    }
+
+    pub fn color(card: CardState) Card.Color {
+        return card.card.color();
+    }
+
+    pub fn order(card: CardState) u8 {
+        return card.card.order();
+    }
+
+    pub fn rank(card: CardState) Card.Rank {
+        return card.card.rank;
+    }
+
+    pub fn suit(card: CardState) Card.Suit {
+        return card.card.suit;
     }
 
     pub fn draw(card: CardState) void {
@@ -59,15 +75,15 @@ pub const CardState = struct {
         // TODO: draw outline
         {
             const rect = .{ .x = card.locus.x - CARD_STROKE, .y = card.locus.y - CARD_STROKE, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
-            const color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
-            r.DrawRectangleRounded(rect, roundness, segments, color);
+            const outLineColor = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+            r.DrawRectangleRounded(rect, roundness, segments, outLineColor);
         }
 
         // Draw body
         {
             const rect = .{ .x = card.locus.x, .y = card.locus.y, .width = card.width, .height = height };
-            const color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
-            r.DrawRectangleRounded(rect, roundness, segments, color);
+            const bodyColor = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+            r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
         }
 
         // Conditionally draw card back

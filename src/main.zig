@@ -47,6 +47,16 @@ pub fn main() !void {
 
         r.ClearBackground(r.GRAY);
 
+        const x = r.GetMousePosition().x;
+        const y = r.GetMousePosition().y;
+        game.handleMove(x, y);
+
+        if (r.IsMouseButtonPressed(r.MOUSE_BUTTON_LEFT)) {
+            game.handleButtonDown(x, y);
+        } else {
+            game.handleButtonUp(x, y);
+        }
+
         game.draw();
     }
 }

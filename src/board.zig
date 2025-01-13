@@ -128,7 +128,7 @@ pub const Board = struct {
         };
     }
 
-    fn peekDestination(board: Board, destination: Destination) ?Card {
+    fn peekDestination(board: Board, destination: Destination) ?CardState {
         return switch (destination) {
             .row_1 => board.row_1.peek(),
             .row_2 => board.row_2.peek(),
@@ -172,7 +172,7 @@ pub const Board = struct {
     /// Check if move is valid
     ///
     /// Panics if `from` is empty.
-    pub fn isMoveValid(board: Board, card: Card, dest: Destination) bool {
+    pub fn isMoveValid(board: Board, card: CardState, dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
 
         switch (dest) {
@@ -183,7 +183,7 @@ pub const Board = struct {
                     if (top.color() != card.color() and card.order() == top.order() - 1) return true;
                 } else {
                     // We can move a king onto a blank row stack
-                    if (card.rank == .king) return true;
+                    if (card.rank() == .king) return true;
                 }
 
                 return false;
@@ -203,10 +203,10 @@ pub const Board = struct {
 
                 if (dest_top) |to| {
                     // Our stack is blank, we only allow ace
-                    if (card.suit == dest_suit and card.order() == to.order() - 1) return true;
+                    if (card.suit() == dest_suit and card.order() == to.order() - 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace
-                    if (card.suit == dest_suit and card.rank == .ace) return true;
+                    if (card.suit() == dest_suit and card.rank() == .ace) return true;
                 }
 
                 return false;
