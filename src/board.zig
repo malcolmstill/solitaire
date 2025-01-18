@@ -28,7 +28,7 @@ pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20 };
 pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20 };
 pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20 };
 
-pub const CARD_STACK_OFFSET = 9.0;
+pub const CARD_STACK_OFFSET = 12.0;
 
 pub const Board = struct {
     stock: Stack(52) = .{ .locus = STOCK_LOCUS },
