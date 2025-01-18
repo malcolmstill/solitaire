@@ -126,3 +126,15 @@ fn generateDeck() [52]Card {
 
     return arr;
 }
+
+test "hash + eql" {
+    const testing = std.testing;
+
+    var map = std.AutoHashMap(Card, usize).init(testing.allocator);
+    defer map.deinit();
+
+    const card = Card.of(.ace, .hearts);
+    try map.put(card, 22);
+
+    try testing.expectEqual(22, map.get(card));
+}

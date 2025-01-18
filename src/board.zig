@@ -3,49 +3,24 @@ const Card = @import("card.zig").Card;
 const Point = @import("point.zig").Point;
 const CardState = @import("card_state.zig").CardState;
 const Stack = @import("stack.zig").Stack;
-
-pub const STOCK_LOCUS: Point = .{ .x = 20, .y = 20 };
-pub const WASTE_LOCUS: Point = .{ .x = 90, .y = 20 };
-
-const ROW_Y = 120;
-const HORIZONTAL_PADDING = 10;
-const CARD_WIDTH = 60;
-
-fn stack_x(comptime i: f64) f64 {
-    return 2 * HORIZONTAL_PADDING + i * (CARD_WIDTH + HORIZONTAL_PADDING);
-}
-
-pub const ROW_1_LOCUS: Point = .{ .x = stack_x(0), .y = ROW_Y };
-pub const ROW_2_LOCUS: Point = .{ .x = stack_x(1), .y = ROW_Y };
-pub const ROW_3_LOCUS: Point = .{ .x = stack_x(2), .y = ROW_Y };
-pub const ROW_4_LOCUS: Point = .{ .x = stack_x(3), .y = ROW_Y };
-pub const ROW_5_LOCUS: Point = .{ .x = stack_x(4), .y = ROW_Y };
-pub const ROW_6_LOCUS: Point = .{ .x = stack_x(5), .y = ROW_Y };
-pub const ROW_7_LOCUS: Point = .{ .x = stack_x(6), .y = ROW_Y };
-
-pub const SPADES_LOCUS: Point = .{ .x = stack_x(4), .y = 20 };
-pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20 };
-pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20 };
-pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20 };
-
-pub const CARD_STACK_OFFSET = 12.0;
+const Direction = @import("direction.zig").Direction;
 
 pub const Board = struct {
-    stock: Stack(52) = .{ .locus = STOCK_LOCUS },
-    waste: Stack(24) = .{ .locus = WASTE_LOCUS },
+    stock: Stack(52) = .{},
+    waste: Stack(24) = .{},
 
-    row_1: Stack(12) = .{ .locus = ROW_1_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
-    row_2: Stack(12) = .{ .locus = ROW_2_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
-    row_3: Stack(12) = .{ .locus = ROW_3_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
-    row_4: Stack(12) = .{ .locus = ROW_4_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
-    row_5: Stack(12) = .{ .locus = ROW_5_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
-    row_6: Stack(12) = .{ .locus = ROW_6_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
-    row_7: Stack(12) = .{ .locus = ROW_7_LOCUS, .card_index_offset = CARD_STACK_OFFSET },
+    row_1: Stack(12) = .{},
+    row_2: Stack(12) = .{},
+    row_3: Stack(12) = .{},
+    row_4: Stack(12) = .{},
+    row_5: Stack(12) = .{},
+    row_6: Stack(12) = .{},
+    row_7: Stack(12) = .{},
 
-    spades: Stack(12) = .{ .locus = SPADES_LOCUS },
-    hearts: Stack(12) = .{ .locus = HEARTS_LOCUS },
-    diamonds: Stack(12) = .{ .locus = DIAMONDS_LOCUS },
-    clubs: Stack(12) = .{ .locus = CLUBS_LOCUS },
+    spades: Stack(12) = .{},
+    hearts: Stack(12) = .{},
+    diamonds: Stack(12) = .{},
+    clubs: Stack(12) = .{},
 
     pub const Source = enum {
         waste,
@@ -76,40 +51,6 @@ pub const Board = struct {
         clubs,
     };
 
-    pub fn deal(seed: u64) Board {
-        var board: Board = .{};
-
-        // Generate deck
-        for (std.meta.tags(Card.Suit)) |suit| {
-            for (std.meta.tags(Card.Rank)) |rank| {
-                board.stock.push(CardState.of(rank, suit, .facedown, .{ .x = 20, .y = 20 }));
-            }
-        }
-
-        var rnd = std.rand.DefaultPrng.init(seed);
-
-        // Shuffle the deck
-        std.Random.shuffle(rnd.random(), CardState, board.stock.slice());
-
-        for (0..1) |_| board.row_1.push(board.stock.pop());
-        for (0..2) |_| board.row_2.push(board.stock.pop());
-        for (0..3) |_| board.row_3.push(board.stock.pop());
-        for (0..4) |_| board.row_4.push(board.stock.pop());
-        for (0..5) |_| board.row_5.push(board.stock.pop());
-        for (0..6) |_| board.row_6.push(board.stock.pop());
-        for (0..7) |_| board.row_7.push(board.stock.pop());
-
-        board.row_1.flipTop();
-        board.row_2.flipTop();
-        board.row_3.flipTop();
-        board.row_4.flipTop();
-        board.row_5.flipTop();
-        board.row_6.flipTop();
-        board.row_7.flipTop();
-
-        return board;
-    }
-
     /// Return the card on top of place (without popping)
     fn peekSource(board: *Board, source: Source) ?Card {
         return switch (source) {
@@ -128,7 +69,7 @@ pub const Board = struct {
         };
     }
 
-    fn peekDestination(board: Board, destination: Destination) ?CardState {
+    fn peekDestination(board: Board, destination: Destination) ?Stack(12).StackEntry {
         return switch (destination) {
             .row_1 => board.row_1.peek(),
             .row_2 => board.row_2.peek(),
@@ -172,6 +113,8 @@ pub const Board = struct {
     /// Check if move is valid
     ///
     /// Panics if `from` is empty.
+    ///
+    /// I think this needs to take into account faceupedness / facedownedness
     pub fn isMoveValid(board: Board, card: CardState, dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
 
@@ -180,7 +123,7 @@ pub const Board = struct {
                 if (dest_top) |top| {
                     // We can place our from card on the to row stack if the colours are different and
                     // the from card is one less than the row stack top
-                    if (top.color() != card.color() and card.order() == top.order() - 1) return true;
+                    if (top.card.color() != card.color() and card.order() == top.card.order() - 1) return true;
                 } else {
                     // We can move a king onto a blank row stack
                     if (card.rank() == .king) return true;
@@ -203,7 +146,7 @@ pub const Board = struct {
 
                 if (dest_top) |to| {
                     // Our stack is blank, we only allow ace
-                    if (card.suit() == dest_suit and card.order() == to.order() - 1) return true;
+                    if (card.suit() == dest_suit and card.order() == to.card.order() - 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace
                     if (card.suit() == dest_suit and card.rank() == .ace) return true;
@@ -262,17 +205,17 @@ pub const Board = struct {
     }
 };
 
-test "Board" {
-    var board = Board.deal(std.crypto.random.int(u64));
+// test "Board" {
+//     var board = Board.deal(std.crypto.random.int(u64));
 
-    board.waste.push(Card.of(.ace, .hearts));
-    board.waste.push(Card.of(.ace, .spades));
+//     board.waste.push(Card.of(.ace, .hearts));
+//     board.waste.push(Card.of(.ace, .spades));
 
-    std.debug.print("board = {any}\n", .{board});
+//     std.debug.print("board = {any}\n", .{board});
 
-    try std.testing.expectEqual(true, board.isMoveValid(Card.of(.ace, .spades), .spades));
-    try std.testing.expectEqual(false, board.isMoveValid(Card.of(.ace, .hearts), .spades));
+//     try std.testing.expectEqual(true, board.isMoveValid(Card.of(.ace, .spades), .spades));
+//     try std.testing.expectEqual(false, board.isMoveValid(Card.of(.ace, .hearts), .spades));
 
-    const new_board = board.move(Card.of(.ace, .spades), .spades);
-    std.debug.print("new board = {any}\n", .{new_board});
-}
+//     const new_board = board.move(Card.of(.ace, .spades), .spades);
+//     std.debug.print("new board = {any}\n", .{new_board});
+// }

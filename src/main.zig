@@ -12,7 +12,7 @@ pub fn main() !void {
     r.SetTargetFPS(60);
     defer r.CloseWindow();
 
-    var game = Game.init(allocator);
+    var game = try Game.init(allocator);
     defer game.deinit();
 
     // Ideally we'd turn this on:
@@ -57,7 +57,7 @@ pub fn main() !void {
             game.handleButtonUp(x, y);
         }
 
-        game.draw();
+        game.render();
     }
 }
 
