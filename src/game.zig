@@ -20,8 +20,7 @@ const CardInHand = struct {
     card: Card,
     source: Board.Source,
     initial_card_locus: Point,
-    initial_mouse_x: f32,
-    initial_mouse_y: f32,
+    initial_mouse: Point,
 };
 
 pub const Game = struct {
@@ -259,21 +258,20 @@ pub const Game = struct {
         }
     }
 
-    pub fn handleButtonDown(game: *Game, x: f32, y: f32) void {
+    pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) void {
         // If we have a card in hand our button was already done
         if (game.state.card_in_hand) |_| return;
 
         // Find card
 
-        if (game.findCard(x, y)) |card_source| {
+        if (game.findCard(mouse_x, mouse_y)) |card_source| {
             const locus = game.card_locations.get(card_source.card);
 
             game.state.card_in_hand = .{
                 .card = card_source.card,
                 .source = card_source.source,
                 .initial_card_locus = .{ .x = locus.x, .y = locus.y },
-                .initial_mouse_x = x,
-                .initial_mouse_y = y,
+                .initial_mouse = .{ .x = mouse_x, .y = mouse_y },
             };
         }
     }
@@ -336,8 +334,8 @@ pub const Game = struct {
 
     pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         if (game.state.card_in_hand) |card_in_hand| {
-            const new_x = card_in_hand.initial_card_locus.x + mouse_x - card_in_hand.initial_mouse_x;
-            const new_y = card_in_hand.initial_card_locus.y + mouse_y - card_in_hand.initial_mouse_y;
+            const new_x = card_in_hand.initial_card_locus.x + mouse_x - card_in_hand.initial_mouse.x;
+            const new_y = card_in_hand.initial_card_locus.y + mouse_y - card_in_hand.initial_mouse.y;
 
             try game.card_locations.set_location(card_in_hand.card, .{ .x = new_x, .y = new_y });
         }
