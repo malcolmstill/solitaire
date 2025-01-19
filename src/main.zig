@@ -43,7 +43,12 @@ pub fn main() !void {
     // loop, because we're not trying to solve window libraries here.
     while (!r.WindowShouldClose()) {
         r.BeginDrawing();
-        defer r.EndDrawing();
+        defer {
+            r.EndDrawing();
+
+            // Wait as long as we can to try for same-frame input latency
+            std.time.sleep(10 * 1000 * 1000);
+        }
 
         r.ClearBackground(r.GRAY);
 
