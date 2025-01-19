@@ -18,8 +18,8 @@ const GameState = struct {
 
 const CardInHand = struct {
     card: Card,
-    initial_x: f32,
-    initial_y: f32,
+    source: Board.Source,
+    initial_card_locus: Point,
     initial_mouse_x: f32,
     initial_mouse_y: f32,
 };
@@ -265,37 +265,56 @@ pub const Game = struct {
 
         // Find card
 
-        if (game.findCard(x, y)) |card| {
-            const locus = game.card_locations.get(card);
+        if (game.findCard(x, y)) |card_source| {
+            const locus = game.card_locations.get(card_source.card);
 
             game.state.card_in_hand = .{
-                .card = card,
-                .initial_x = locus.x,
-                .initial_y = locus.y,
+                .card = card_source.card,
+                .source = card_source.source,
+                .initial_card_locus = .{ .x = locus.x, .y = locus.y },
                 .initial_mouse_x = x,
                 .initial_mouse_y = y,
             };
         }
     }
 
-    pub fn handleButtonUp(game: *Game, x: f32, y: f32) void {
+    pub fn handleButtonUp(game: *Game, x: f32, y: f32) !void {
         _ = x; // autofix
         _ = y; // autofix
 
         // If we have a card in our hand, place it where our
         // mouse is over, if the move is valid
         if (game.state.card_in_hand) |card_in_hand| {
-            const dest = undefined;
+            const card = card_in_hand.card;
+            const dest = .spades; // FIXME: get destination from mouse position
 
             if (game.board.isMoveValid(card_in_hand.card, dest)) {
                 //
             } else {
-                //
+                const source = card_in_hand.source;
+
+                game.board = switch (source) {
+                    .waste => game.board.returnCard(card, .waste),
+                    .row_1 => game.board.returnCard(card, .row_1),
+                    .row_2 => game.board.returnCard(card, .row_2),
+                    .row_3 => game.board.returnCard(card, .row_3),
+                    .row_4 => game.board.returnCard(card, .row_4),
+                    .row_5 => game.board.returnCard(card, .row_5),
+                    .row_6 => game.board.returnCard(card, .row_6),
+                    .row_7 => game.board.returnCard(card, .row_7),
+                    .spades => game.board.returnCard(card, .spades),
+                    .hearts => game.board.returnCard(card, .hearts),
+                    .diamonds => game.board.returnCard(card, .diamonds),
+                    .clubs => game.board.returnCard(card, .clubs),
+                };
+
+                try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
+                game.state.card_in_hand = null;
             }
         }
     }
 
-    pub fn findCard(game: *Game, x: f32, y: f32) ?Card {
+    pub fn findCard(game: *Game, x: f32, y: f32) ?struct { card: Card, source: Board.Source } {
         std.debug.print("Todo find card ({}, {})\n", .{ x, y });
 
         if (game.board.row_1.peek()) |entry| {
@@ -307,9 +326,9 @@ pub const Game = struct {
             if (y < locus.y) return null;
             if (y > locus.y + CARD_HEIGHT) return null;
 
-            std.debug.print("found card = {}\n", .{entry.card});
+            std.debug.print("found card = {} in {}\n", .{ entry.card, .row_1 });
 
-            return game.board.row_1.pop().card;
+            return .{ .card = game.board.row_1.pop().card, .source = .row_1 };
         }
 
         return null;
@@ -317,8 +336,8 @@ pub const Game = struct {
 
     pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         if (game.state.card_in_hand) |card_in_hand| {
-            const new_x = card_in_hand.initial_x + mouse_x - card_in_hand.initial_mouse_x;
-            const new_y = card_in_hand.initial_y + mouse_y - card_in_hand.initial_mouse_y;
+            const new_x = card_in_hand.initial_card_locus.x + mouse_x - card_in_hand.initial_mouse_x;
+            const new_y = card_in_hand.initial_card_locus.y + mouse_y - card_in_hand.initial_mouse_y;
 
             try game.card_locations.set_location(card_in_hand.card, .{ .x = new_x, .y = new_y });
         }

@@ -109,6 +109,31 @@ pub const Board = struct {
         return new_board;
     }
 
+    // Return a card to its source where a move is invalid
+    pub fn returnCard(board: Board, card: Card, src: Source) Board {
+        var new_board = board;
+
+        // TODO: reinstate this
+        // defer std.debug.assert(new_board.count() == 54);
+
+        switch (src) {
+            .waste => new_board.waste.push(card, .faceup),
+            .row_1 => new_board.row_1.push(card, .faceup),
+            .row_2 => new_board.row_2.push(card, .faceup),
+            .row_3 => new_board.row_3.push(card, .faceup),
+            .row_4 => new_board.row_4.push(card, .faceup),
+            .row_5 => new_board.row_5.push(card, .faceup),
+            .row_6 => new_board.row_6.push(card, .faceup),
+            .row_7 => new_board.row_7.push(card, .faceup),
+            .spades => new_board.spades.push(card, .faceup),
+            .hearts => new_board.hearts.push(card, .faceup),
+            .diamonds => new_board.diamonds.push(card, .faceup),
+            .clubs => new_board.clubs.push(card, .faceup),
+        }
+
+        return new_board;
+    }
+
     /// Check if move is valid
     ///
     /// Panics if `from` is empty.
