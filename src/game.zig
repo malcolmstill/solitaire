@@ -291,21 +291,7 @@ pub const Game = struct {
             } else {
                 const source = card_in_hand.source;
 
-                game.board = switch (source) {
-                    .waste => game.board.returnCard(card, .waste),
-                    .row_1 => game.board.returnCard(card, .row_1),
-                    .row_2 => game.board.returnCard(card, .row_2),
-                    .row_3 => game.board.returnCard(card, .row_3),
-                    .row_4 => game.board.returnCard(card, .row_4),
-                    .row_5 => game.board.returnCard(card, .row_5),
-                    .row_6 => game.board.returnCard(card, .row_6),
-                    .row_7 => game.board.returnCard(card, .row_7),
-                    .spades => game.board.returnCard(card, .spades),
-                    .hearts => game.board.returnCard(card, .hearts),
-                    .diamonds => game.board.returnCard(card, .diamonds),
-                    .clubs => game.board.returnCard(card, .clubs),
-                };
-
+                game.board = game.board.returnCard(card, source);
                 try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
                 game.state.card_in_hand = null;
             }
