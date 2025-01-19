@@ -296,28 +296,27 @@ pub const Game = struct {
     }
 
     pub fn findCard(game: *Game, x: f32, y: f32) ?Card {
-        _ = game; // autofix
         std.debug.print("Todo find card ({}, {})\n", .{ x, y });
 
-        // if (game.board.row_1.peek()) |card| {
-        //     if (x < card.locus.x) return null;
-        //     if (x > card.locus.x + CardState.CARD_WIDTH) return null;
+        if (game.board.row_1.peek()) |entry| {
+            const locus = game.card_locations.get(entry.card);
 
-        //     if (y < card.locus.y) return null;
-        //     if (y > card.locus.y + CardState.CARD_HEIGHT) return null;
+            if (x < locus.x) return null;
+            if (x > locus.x + CARD_WIDTH) return null;
 
-        //     std.debug.print("found card = {}\n", .{card.card});
+            if (y < locus.y) return null;
+            if (y > locus.y + CARD_HEIGHT) return null;
 
-        //     return game.board.row_1.pop();
-        // }
+            std.debug.print("found card = {}\n", .{entry.card});
+
+            return game.board.row_1.pop().card;
+        }
 
         return null;
     }
 
     pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         if (game.state.card_in_hand) |card_in_hand| {
-            // const locus = game.card_locations.get(card_in_hand.card);
-            // _ = locus; // autofix
             const new_x = card_in_hand.initial_x + mouse_x - card_in_hand.initial_mouse_x;
             const new_y = card_in_hand.initial_y + mouse_y - card_in_hand.initial_mouse_y;
 
