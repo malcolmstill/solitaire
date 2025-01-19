@@ -298,21 +298,21 @@ pub const Game = struct {
         }
     }
 
+    /// Find card under cusror
     pub fn findCard(game: *Game, x: f32, y: f32) ?struct { card: Card, source: Board.Source } {
-        std.debug.print("Todo find card ({}, {})\n", .{ x, y });
+        inline for (comptime std.meta.tags(Board.Source)) |src| {
+            var stack = @field(game.board, @tagName(src));
 
-        if (game.board.row_1.peek()) |entry| {
-            const locus = game.card_locations.get(entry.card);
+            if (stack.peek()) |entry| {
+                const locus = game.card_locations.get(entry.card);
 
-            if (x < locus.x) return null;
-            if (x > locus.x + CARD_WIDTH) return null;
-
-            if (y < locus.y) return null;
-            if (y > locus.y + CARD_HEIGHT) return null;
-
-            std.debug.print("found card = {} in {}\n", .{ entry.card, .row_1 });
-
-            return .{ .card = game.board.row_1.pop().card, .source = .row_1 };
+                if (x > locus.x and x < locus.x + CARD_WIDTH) {
+                    if (y > locus.y and y < locus.y + CARD_HEIGHT) {
+                        std.debug.print("found card = {} in {}\n", .{ entry.card, src });
+                        return .{ .card = stack.pop().card, .source = src };
+                    }
+                }
+            }
         }
 
         return null;
