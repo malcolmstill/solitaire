@@ -241,7 +241,21 @@ pub const Game = struct {
         }
 
         // Draw body
-        {
+        if (card.rank == .ace and card.suit == .clubs) {
+            const tex = r.LoadTexture("src/ace_club.png");
+            const texRect = .{
+                .x = 0.0,
+                .y = 0.0,
+                .width = @as(f32, @floatFromInt(tex.width)),
+                .height = @as(f32, @floatFromInt(tex.height)),
+            };
+
+            const rect = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
+            const bodyColor = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+            r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
+
+            r.DrawTexturePro(tex, texRect, rect, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
+        } else {
             const rect = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
             const bodyColor = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
             r.DrawRectangleRounded(rect, roundness, segments, bodyColor);

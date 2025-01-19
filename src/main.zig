@@ -57,12 +57,10 @@ pub fn main() !void {
         try game.handleMove(x, y);
 
         if (r.IsMouseButtonPressed(r.MOUSE_BUTTON_LEFT)) {
-            std.debug.print("mousedown\n", .{});
             game.handleButtonDown(x, y);
         }
 
         if (r.IsMouseButtonReleased(r.MOUSE_BUTTON_LEFT)) {
-            std.debug.print("mouseup\n", .{});
             try game.handleButtonUp(x, y);
         }
 
