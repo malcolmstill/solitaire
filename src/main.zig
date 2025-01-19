@@ -49,7 +49,7 @@ pub fn main() !void {
 
         const x = r.GetMousePosition().x;
         const y = r.GetMousePosition().y;
-        game.handleMove(x, y);
+        try game.handleMove(x, y);
 
         if (r.IsMouseButtonPressed(r.MOUSE_BUTTON_LEFT)) {
             game.handleButtonDown(x, y);

@@ -1,7 +1,6 @@
 const std = @import("std");
 const Card = @import("card.zig").Card;
 const Point = @import("point.zig").Point;
-const CardState = @import("card_state.zig").CardState;
 const Stack = @import("stack.zig").Stack;
 const Direction = @import("direction.zig").Direction;
 
@@ -115,7 +114,7 @@ pub const Board = struct {
     /// Panics if `from` is empty.
     ///
     /// I think this needs to take into account faceupedness / facedownedness
-    pub fn isMoveValid(board: Board, card: CardState, dest: Destination) bool {
+    pub fn isMoveValid(board: Board, card: Card, dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
 
         switch (dest) {
@@ -126,7 +125,7 @@ pub const Board = struct {
                     if (top.card.color() != card.color() and card.order() == top.card.order() - 1) return true;
                 } else {
                     // We can move a king onto a blank row stack
-                    if (card.rank() == .king) return true;
+                    if (card.rank == .king) return true;
                 }
 
                 return false;
@@ -146,10 +145,10 @@ pub const Board = struct {
 
                 if (dest_top) |to| {
                     // Our stack is blank, we only allow ace
-                    if (card.suit() == dest_suit and card.order() == to.card.order() - 1) return true;
+                    if (card.suit == dest_suit and card.order() == to.card.order() - 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace
-                    if (card.suit() == dest_suit and card.rank() == .ace) return true;
+                    if (card.suit == dest_suit and card.rank == .ace) return true;
                 }
 
                 return false;

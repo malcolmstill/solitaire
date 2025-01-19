@@ -3,7 +3,6 @@ const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
 const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
-const CardState = @import("card_state.zig").CardState;
 const Point = @import("point.zig").Point;
 const Direction = @import("direction.zig").Direction;
 
@@ -18,7 +17,7 @@ const GameState = struct {
 };
 
 const CardInHand = struct {
-    card: CardState,
+    card: Card,
     initial_x: f32,
     initial_y: f32,
     initial_mouse_x: f32,
@@ -195,7 +194,8 @@ pub const Game = struct {
         game.renderStack("clubs");
 
         if (game.state.card_in_hand) |card_in_hand| {
-            card_in_hand.card.draw();
+            // card_in_hand.card.draw();
+            game.renderCard(card_in_hand.card, .faceup);
         }
     }
 
@@ -266,10 +266,12 @@ pub const Game = struct {
         // Find card
 
         if (game.findCard(x, y)) |card| {
+            const locus = game.card_locations.get(card);
+
             game.state.card_in_hand = .{
                 .card = card,
-                .initial_x = card.locus.x,
-                .initial_y = card.locus.y,
+                .initial_x = locus.x,
+                .initial_y = locus.y,
                 .initial_mouse_x = x,
                 .initial_mouse_y = y,
             };
@@ -293,7 +295,7 @@ pub const Game = struct {
         }
     }
 
-    pub fn findCard(game: *Game, x: f32, y: f32) ?CardState {
+    pub fn findCard(game: *Game, x: f32, y: f32) ?Card {
         _ = game; // autofix
         std.debug.print("Todo find card ({}, {})\n", .{ x, y });
 
@@ -312,10 +314,14 @@ pub const Game = struct {
         return null;
     }
 
-    pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) void {
-        if (game.state.card_in_hand) |*card_in_hand| {
-            card_in_hand.card.locus.x = card_in_hand.initial_x + mouse_x - card_in_hand.initial_mouse_x;
-            card_in_hand.card.locus.y = card_in_hand.initial_y + mouse_y - card_in_hand.initial_mouse_y;
+    pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) !void {
+        if (game.state.card_in_hand) |card_in_hand| {
+            // const locus = game.card_locations.get(card_in_hand.card);
+            // _ = locus; // autofix
+            const new_x = card_in_hand.initial_x + mouse_x - card_in_hand.initial_mouse_x;
+            const new_y = card_in_hand.initial_y + mouse_y - card_in_hand.initial_mouse_y;
+
+            try game.card_locations.set_location(card_in_hand.card, .{ .x = new_x, .y = new_y });
         }
     }
 };
