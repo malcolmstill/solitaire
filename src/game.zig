@@ -284,10 +284,18 @@ pub const Game = struct {
         // mouse is over, if the move is valid
         if (game.state.card_in_hand) |card_in_hand| {
             const card = card_in_hand.card;
-            const dest = .spades; // FIXME: get destination from mouse position
+            const dest = .clubs; // FIXME: get destination from mouse position
 
             if (game.board.isMoveValid(card_in_hand.card, dest)) {
-                //
+                game.board = try game.board.move(card, dest);
+
+                // FIXME this assumes clubs
+                const stack_locus = CLUBS_LOCUS;
+                const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(0)) };
+                try game.card_locations.set_location(card, locus);
+
+                // try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
+                game.state.card_in_hand = null;
             } else {
                 const source = card_in_hand.source;
 
