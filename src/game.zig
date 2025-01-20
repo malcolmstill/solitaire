@@ -374,7 +374,7 @@ pub const Game = struct {
             const dest = .clubs; // FIXME: get destination from mouse position
 
             if (game.board.isMoveValid(card_in_hand.card, dest)) {
-                game.board = try game.board.move(card, dest);
+                try game.board.move(card, dest);
 
                 // FIXME this assumes clubs
                 const stack_locus = CLUBS_LOCUS;
@@ -386,7 +386,7 @@ pub const Game = struct {
             } else {
                 const source = card_in_hand.source;
 
-                game.board = game.board.returnCard(card, source);
+                game.board.returnCard(card, source);
                 try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
                 game.state.card_in_hand = null;
             }
@@ -396,15 +396,16 @@ pub const Game = struct {
     /// Find card under cusror
     pub fn findCard(game: *Game, x: f32, y: f32) ?struct { card: Card, source: Board.Source } {
         inline for (comptime std.meta.tags(Board.Source)) |src| {
-            var stack = @field(game.board, @tagName(src));
-
-            if (stack.peek()) |entry| {
+            if (@field(game.board, @tagName(src)).peek()) |entry| {
                 const locus = game.card_locations.get(entry.card);
 
                 if (x > locus.x and x < locus.x + CARD_WIDTH) {
                     if (y > locus.y and y < locus.y + CARD_HEIGHT) {
                         std.debug.print("found card = {} in {}\n", .{ entry.card, src });
-                        return .{ .card = stack.pop().card, .source = src };
+
+                        defer std.debug.print("board = {}\n", .{game.board});
+
+                        return .{ .card = @field(game.board, @tagName(src)).pop().card, .source = src };
                     }
                 }
             }

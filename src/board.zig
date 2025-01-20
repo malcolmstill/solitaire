@@ -84,48 +84,44 @@ pub const Board = struct {
         };
     }
 
-    pub fn move(board: Board, card: Card, dest: Destination) !Board {
+    pub fn move(board: *Board, card: Card, dest: Destination) !void {
         if (!board.isMoveValid(card, dest)) return error.InvalidMove;
 
-        var new_board = board;
-
         switch (dest) {
-            .row_1 => new_board.row_1.push(card, .faceup),
-            .row_2 => new_board.row_2.push(card, .faceup),
-            .row_3 => new_board.row_3.push(card, .faceup),
-            .row_4 => new_board.row_4.push(card, .faceup),
-            .row_5 => new_board.row_5.push(card, .faceup),
-            .row_6 => new_board.row_6.push(card, .faceup),
-            .row_7 => new_board.row_7.push(card, .faceup),
-            .spades => new_board.spades.push(card, .faceup),
-            .hearts => new_board.hearts.push(card, .faceup),
-            .diamonds => new_board.diamonds.push(card, .faceup),
-            .clubs => new_board.clubs.push(card, .faceup),
+            .row_1 => board.row_1.push(card, .faceup),
+            .row_2 => board.row_2.push(card, .faceup),
+            .row_3 => board.row_3.push(card, .faceup),
+            .row_4 => board.row_4.push(card, .faceup),
+            .row_5 => board.row_5.push(card, .faceup),
+            .row_6 => board.row_6.push(card, .faceup),
+            .row_7 => board.row_7.push(card, .faceup),
+            .spades => board.spades.push(card, .faceup),
+            .hearts => board.hearts.push(card, .faceup),
+            .diamonds => board.diamonds.push(card, .faceup),
+            .clubs => board.clubs.push(card, .faceup),
         }
 
-        return new_board;
+        // return new_board;
     }
 
     // Return a card to its source where a move is invalid
-    pub fn returnCard(board: Board, card: Card, src: Source) Board {
-        var new_board = board;
-
+    pub fn returnCard(board: *Board, card: Card, src: Source) void {
         switch (src) {
-            .waste => new_board.waste.push(card, .faceup),
-            .row_1 => new_board.row_1.push(card, .faceup),
-            .row_2 => new_board.row_2.push(card, .faceup),
-            .row_3 => new_board.row_3.push(card, .faceup),
-            .row_4 => new_board.row_4.push(card, .faceup),
-            .row_5 => new_board.row_5.push(card, .faceup),
-            .row_6 => new_board.row_6.push(card, .faceup),
-            .row_7 => new_board.row_7.push(card, .faceup),
-            .spades => new_board.spades.push(card, .faceup),
-            .hearts => new_board.hearts.push(card, .faceup),
-            .diamonds => new_board.diamonds.push(card, .faceup),
-            .clubs => new_board.clubs.push(card, .faceup),
+            .waste => board.waste.push(card, .faceup),
+            .row_1 => board.row_1.push(card, .faceup),
+            .row_2 => board.row_2.push(card, .faceup),
+            .row_3 => board.row_3.push(card, .faceup),
+            .row_4 => board.row_4.push(card, .faceup),
+            .row_5 => board.row_5.push(card, .faceup),
+            .row_6 => board.row_6.push(card, .faceup),
+            .row_7 => board.row_7.push(card, .faceup),
+            .spades => board.spades.push(card, .faceup),
+            .hearts => board.hearts.push(card, .faceup),
+            .diamonds => board.diamonds.push(card, .faceup),
+            .clubs => board.clubs.push(card, .faceup),
         }
 
-        return new_board;
+        // return new_board;
     }
 
     /// Check if move is valid

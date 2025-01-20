@@ -70,7 +70,7 @@ pub fn Stack(comptime N: u16) type {
             _ = options;
 
             try writer.print("[", .{});
-            for (stack.stack_array[0..stack.position], 0..) |card_state, i| {
+            for (stack.card_array[0..stack.position], 0..) |card_state, i| {
                 if (i > 0) try writer.print(", ", .{});
 
                 try writer.print("{}", .{card_state});
