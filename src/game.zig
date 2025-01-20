@@ -28,6 +28,7 @@ pub const Game = struct {
     history: std.ArrayList(Board),
     state: GameState,
     card_locations: CardLocations,
+    tex: r.struct_Texture,
     stack_locus: struct {
         stock: Point = STOCK_LOCUS,
         waste: Point = WASTE_LOCUS,
@@ -47,6 +48,8 @@ pub const Game = struct {
     pub fn init(allocator: std.mem.Allocator) !Game {
         var card_locations = CardLocations.init(allocator);
 
+        const tex = r.LoadTexture("src/ace_club.png");
+
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
                 try card_locations.set_location(Card.of(rank, suit), STOCK_LOCUS);
@@ -58,6 +61,7 @@ pub const Game = struct {
             .history = std.ArrayList(Board).init(allocator),
             .state = .{},
             .card_locations = card_locations,
+            .tex = tex,
             .stack_locus = .{},
         };
     }
@@ -242,7 +246,7 @@ pub const Game = struct {
 
         // Draw body
         if (card.rank == .ace and card.suit == .clubs) {
-            const tex = r.LoadTexture("src/ace_club.png");
+            const tex = game.tex;
             const texRect = .{
                 .x = 0.0,
                 .y = 0.0,
