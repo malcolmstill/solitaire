@@ -29,6 +29,8 @@ pub const Game = struct {
     state: GameState,
     card_locations: CardLocations,
     tex: r.struct_Texture,
+    red_corner: r.struct_Texture,
+    black_corner: r.struct_Texture,
     stack_locus: struct {
         stock: Point = STOCK_LOCUS,
         waste: Point = WASTE_LOCUS,
@@ -50,6 +52,9 @@ pub const Game = struct {
 
         const tex = r.LoadTexture("src/ace_club.png");
 
+        const red_corner = r.LoadTexture("src/red.png");
+        const black_corner = r.LoadTexture("src/black.png");
+
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
                 try card_locations.set_location(Card.of(rank, suit), STOCK_LOCUS);
@@ -62,6 +67,8 @@ pub const Game = struct {
             .state = .{},
             .card_locations = card_locations,
             .tex = tex,
+            .red_corner = red_corner,
+            .black_corner = black_corner,
             .stack_locus = .{},
         };
     }
@@ -245,21 +252,7 @@ pub const Game = struct {
         }
 
         // Draw body
-        if (card.rank == .ace and card.suit == .clubs) {
-            const tex = game.tex;
-            const texRect = .{
-                .x = 0.0,
-                .y = 0.0,
-                .width = @as(f32, @floatFromInt(tex.width)),
-                .height = @as(f32, @floatFromInt(tex.height)),
-            };
-
-            const rect = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const bodyColor = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
-            r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
-
-            r.DrawTexturePro(tex, texRect, rect, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
-        } else {
+        {
             const rect = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
             const bodyColor = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
             r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
@@ -272,8 +265,84 @@ pub const Game = struct {
                 const backColor = .{ .a = 200, .r = 220, .g = 50, .b = 50 };
                 r.DrawRectangleRounded(backRect, 0.15, segments, backColor);
             },
-            .faceup => {},
+            .faceup => {
+                game.drawCornerRank(card, locus);
+                game.drawCornerSuit(card, locus);
+            },
         }
+    }
+
+    fn drawCornerRank(game: *Game, card: Card, locus: Point) void {
+        const sprite_width = 12.0;
+
+        const tex = switch (card.suit) {
+            .hearts, .diamonds => game.red_corner,
+            .spades, .clubs => game.black_corner,
+        };
+
+        const suit_index: struct { x: f32, y: f32 } = switch (card.rank) {
+            .ace => .{ .x = 0, .y = 0 },
+            .two => .{ .x = 2, .y = 0 },
+            .three => .{ .x = 3, .y = 0 },
+            .four => .{ .x = 0, .y = 1 },
+            .five => .{ .x = 1, .y = 1 },
+            .six => .{ .x = 2, .y = 1 },
+            .seven => .{ .x = 2, .y = 1 },
+            .eight => .{ .x = 0, .y = 2 },
+            .nine => .{ .x = 1, .y = 2 },
+            .ten => .{ .x = 2, .y = 2 },
+            .jack => .{ .x = 2, .y = 2 },
+            .queen => .{ .x = 0, .y = 3 },
+            .king => .{ .x = 1, .y = 3 },
+        };
+
+        const src = .{
+            .x = suit_index.x * sprite_width,
+            .y = suit_index.y * sprite_width,
+            .width = sprite_width,
+            .height = sprite_width,
+        };
+
+        const top_left = .{ .x = locus.x + 0.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
+        const top_right = .{ .x = locus.x + CARD_WIDTH - 13.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
+        const bottom_left = .{ .x = locus.x + 13.0, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
+        const bottom_right = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
+
+        r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
+        r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
+        r.DrawTexturePro(tex, src, bottom_left, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
+        r.DrawTexturePro(tex, src, bottom_right, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
+    }
+
+    fn drawCornerSuit(game: *Game, card: Card, locus: Point) void {
+        const sprite_width = 12.0;
+
+        const tex = switch (card.suit) {
+            .hearts, .diamonds => game.red_corner,
+            .spades, .clubs => game.black_corner,
+        };
+
+        const suit_index: struct { x: f32, y: f32 } = switch (card.suit) {
+            .hearts, .clubs => .{ .x = 3, .y = 3 },
+            .diamonds, .spades => .{ .x = 2, .y = 3 },
+        };
+
+        const src = .{
+            .x = suit_index.x * sprite_width,
+            .y = suit_index.y * sprite_width,
+            .width = sprite_width,
+            .height = sprite_width,
+        };
+
+        const top_left = .{ .x = locus.x + 0.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
+        const top_right = .{ .x = locus.x + CARD_WIDTH - sprite_width - 1.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
+        const bottom_left = .{ .x = locus.x + sprite_width + 1.0, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
+        const bottom_right = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
+
+        r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
+        r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
+        r.DrawTexturePro(tex, src, bottom_left, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
+        r.DrawTexturePro(tex, src, bottom_right, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
     }
 
     pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) void {
