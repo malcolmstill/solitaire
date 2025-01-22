@@ -387,7 +387,11 @@ pub const Game = struct {
                     try game.board.move(card, dst.dest);
 
                     const stack_locus = dst.locus;
-                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) };
+                    const locus: Point = switch (dst.dest) {
+                        .spades, .hearts, .diamonds, .clubs => .{ .x = stack_locus.x, .y = stack_locus.y },
+                        else => .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) },
+                    };
+
                     try game.card_locations.set_location(card, locus);
 
                     game.state.card_in_hand = null;
