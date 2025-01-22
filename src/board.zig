@@ -160,7 +160,7 @@ pub const Board = struct {
 
                 if (dest_top) |to| {
                     // Our stack is blank, we only allow ace
-                    if (card.suit == dest_suit and card.order() == to.card.order() - 1) return true;
+                    if (card.suit == dest_suit and card.order() == to.card.order() + 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace
                     if (card.suit == dest_suit and card.rank == .ace) return true;
