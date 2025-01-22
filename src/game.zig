@@ -363,34 +363,48 @@ pub const Game = struct {
         }
     }
 
-    pub fn handleButtonUp(game: *Game, x: f32, y: f32) !void {
-        _ = x; // autofix
-        _ = y; // autofix
-
+    pub fn handleButtonUp(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         // If we have a card in our hand, place it where our
         // mouse is over, if the move is valid
         if (game.state.card_in_hand) |card_in_hand| {
             const card = card_in_hand.card;
-            const dest = .clubs; // FIXME: get destination from mouse position
 
-            if (game.board.isMoveValid(card_in_hand.card, dest)) {
-                try game.board.move(card, dest);
+            const dest = game.findDest(mouse_x, mouse_y);
 
-                // FIXME this assumes clubs
-                const stack_locus = CLUBS_LOCUS;
-                const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(0)) };
-                try game.card_locations.set_location(card, locus);
+            if (dest) |dst| {
+                if (game.board.isMoveValid(card_in_hand.card, dst.dest)) {
+                    try game.board.move(card, dst.dest);
 
-                // try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
-                game.state.card_in_hand = null;
-            } else {
-                const source = card_in_hand.source;
+                    const stack_locus = dst.locus;
+                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(0)) };
+                    try game.card_locations.set_location(card, locus);
 
-                game.board.returnCard(card, source);
-                try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
-                game.state.card_in_hand = null;
+                    game.state.card_in_hand = null;
+
+                    return;
+                }
+            }
+
+            const source = card_in_hand.source;
+
+            game.board.returnCard(card, source);
+            try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
+            game.state.card_in_hand = null;
+        }
+    }
+
+    pub fn findDest(game: *Game, mouse_x: f32, mouse_y: f32) ?struct { dest: Board.Destination, locus: Point } {
+        inline for (comptime std.meta.tags(Board.Destination)) |dst| {
+            const locus = @field(game.stack_locus, @tagName(dst));
+
+            if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
+                if (mouse_y > locus.y and mouse_y < locus.y + CARD_HEIGHT) {
+                    return .{ .dest = dst, .locus = locus };
+                }
             }
         }
+
+        return null;
     }
 
     /// Find card under cusror
