@@ -376,7 +376,7 @@ pub const Game = struct {
                     try game.board.move(card, dst.dest);
 
                     const stack_locus = dst.locus;
-                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(0)) };
+                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) };
                     try game.card_locations.set_location(card, locus);
 
                     game.state.card_in_hand = null;
@@ -393,13 +393,15 @@ pub const Game = struct {
         }
     }
 
-    pub fn findDest(game: *Game, mouse_x: f32, mouse_y: f32) ?struct { dest: Board.Destination, locus: Point } {
+    pub fn findDest(game: *Game, mouse_x: f32, mouse_y: f32) ?struct { dest: Board.Destination, locus: Point, count: usize } {
         inline for (comptime std.meta.tags(Board.Destination)) |dst| {
             const locus = @field(game.stack_locus, @tagName(dst));
+            const stack = @field(game.board, @tagName(dst));
+            const stack_count = stack.count();
 
             if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
                 if (mouse_y > locus.y and mouse_y < locus.y + CARD_HEIGHT) {
-                    return .{ .dest = dst, .locus = locus };
+                    return .{ .dest = dst, .locus = locus, .count = stack_count };
                 }
             }
         }
