@@ -57,7 +57,7 @@ pub fn main() !void {
         try game.handleMove(x, y);
 
         if (r.IsMouseButtonPressed(r.MOUSE_BUTTON_LEFT)) {
-            game.handleButtonDown(x, y);
+            try game.handleButtonDown(x, y);
         }
 
         if (r.IsMouseButtonReleased(r.MOUSE_BUTTON_LEFT)) {

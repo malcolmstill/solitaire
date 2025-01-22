@@ -345,12 +345,23 @@ pub const Game = struct {
         r.DrawTexturePro(tex, src, bottom_right, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
     }
 
-    pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) void {
+    pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         // If we have a card in hand our button was already done
         if (game.state.card_in_hand) |_| return;
 
-        // Find card
+        if (game.stockClicked(mouse_x, mouse_y)) {
+            const entry = game.board.stock.pop();
+            game.board.waste.push(entry.card, .faceup);
 
+            const stack_locus = game.stack_locus.waste;
+
+            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+            try game.card_locations.set_location(entry.card, locus);
+
+            return;
+        }
+
+        // Find card that we can pick up
         if (game.findCard(mouse_x, mouse_y)) |card_source| {
             const locus = game.card_locations.get(card_source.card);
 
@@ -391,6 +402,17 @@ pub const Game = struct {
             try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
             game.state.card_in_hand = null;
         }
+    }
+
+    pub fn stockClicked(game: *Game, mouse_x: f32, mouse_y: f32) bool {
+        const locus = game.stack_locus.stock;
+
+        if (mouse_x < locus.x) return false;
+        if (mouse_x > locus.x + CARD_WIDTH) return false;
+        if (mouse_y < locus.y) return false;
+        if (mouse_y > locus.y + CARD_HEIGHT) return false;
+
+        return true;
     }
 
     pub fn findDest(game: *Game, mouse_x: f32, mouse_y: f32) ?struct { dest: Board.Destination, locus: Point, count: usize } {
