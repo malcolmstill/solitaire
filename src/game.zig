@@ -397,11 +397,12 @@ pub const Game = struct {
         inline for (comptime std.meta.tags(Board.Destination)) |dst| {
             const locus = @field(game.stack_locus, @tagName(dst));
             const stack = @field(game.board, @tagName(dst));
-            const stack_count = stack.count();
+            const count = stack.count();
+            const offset = CARD_STACK_OFFSET * @as(f32, @floatFromInt(count));
 
             if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
-                if (mouse_y > locus.y and mouse_y < locus.y + CARD_HEIGHT) {
-                    return .{ .dest = dst, .locus = locus, .count = stack_count };
+                if (mouse_y > locus.y + offset and mouse_y < locus.y + CARD_HEIGHT + offset) {
+                    return .{ .dest = dst, .locus = locus, .count = count };
                 }
             }
         }
