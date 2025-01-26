@@ -131,6 +131,7 @@ pub const Board = struct {
     /// I think this needs to take into account faceupedness / facedownedness
     pub fn isMoveValid(board: Board, card: Card, dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
+        std.debug.print("isMoveValid: {}, {}, dest top = {any}", .{ card, dest, dest_top });
 
         switch (dest) {
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {
@@ -175,21 +176,21 @@ pub const Board = struct {
     pub fn count(board: Board) usize {
         var n: usize = 0;
 
-        n += board.stock.count();
-        n += board.waste.count();
+        n += board.stock.size();
+        n += board.waste.size();
 
-        n += board.row_1.count();
-        n += board.row_2.count();
-        n += board.row_3.count();
-        n += board.row_4.count();
-        n += board.row_5.count();
-        n += board.row_6.count();
-        n += board.row_7.count();
+        n += board.row_1.size();
+        n += board.row_2.size();
+        n += board.row_3.size();
+        n += board.row_4.size();
+        n += board.row_5.size();
+        n += board.row_6.size();
+        n += board.row_7.size();
 
-        n += board.spades.count();
-        n += board.hearts.count();
-        n += board.diamonds.count();
-        n += board.clubs.count();
+        n += board.spades.size();
+        n += board.hearts.size();
+        n += board.diamonds.size();
+        n += board.clubs.size();
 
         return n;
     }
@@ -218,18 +219,3 @@ pub const Board = struct {
         try writer.print("clubs: {}\n", .{board.clubs});
     }
 };
-
-// test "Board" {
-//     var board = Board.deal(std.crypto.random.int(u64));
-
-//     board.waste.push(Card.of(.ace, .hearts));
-//     board.waste.push(Card.of(.ace, .spades));
-
-//     std.debug.print("board = {any}\n", .{board});
-
-//     try std.testing.expectEqual(true, board.isMoveValid(Card.of(.ace, .spades), .spades));
-//     try std.testing.expectEqual(false, board.isMoveValid(Card.of(.ace, .hearts), .spades));
-
-//     const new_board = board.move(Card.of(.ace, .spades), .spades);
-//     std.debug.print("new board = {any}\n", .{new_board});
-// }

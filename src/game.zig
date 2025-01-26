@@ -423,7 +423,7 @@ pub const Game = struct {
         inline for (comptime std.meta.tags(Board.Destination)) |dst| {
             const locus = @field(game.stack_locus, @tagName(dst));
             const stack = @field(game.board, @tagName(dst));
-            const count = stack.count();
+            const count = stack.size();
             const offset = CARD_STACK_OFFSET * @as(f32, @floatFromInt(count));
 
             if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
@@ -436,10 +436,14 @@ pub const Game = struct {
         return null;
     }
 
+    // FIXME: we need to check to more than just the top of a stack, as we need to be able to move
+    //        more than one card at a time.
     /// Find card under cusror
     pub fn findCard(game: *Game, x: f32, y: f32) ?struct { card: Card, source: Board.Source } {
         inline for (comptime std.meta.tags(Board.Source)) |src| {
-            if (@field(game.board, @tagName(src)).peek()) |entry| {
+            var it = @field(game.board, @tagName(src)).iterator();
+
+            while (it.next()) |entry| {
                 const locus = game.card_locations.get(entry.card);
 
                 if (x > locus.x and x < locus.x + CARD_WIDTH) {
