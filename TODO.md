@@ -6,5 +6,4 @@
   - Stupid idea (maybe): double entry bookkeeping for moves
     - [take waste, put spades]
 
-- Can't place, say, 2 clubs on A clubs when A clubs is on clubs stack
 - Can't pick up faceup group of cards, can only pick up top card

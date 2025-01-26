@@ -291,7 +291,7 @@ pub const Game = struct {
             .eight => .{ .x = 0, .y = 2 },
             .nine => .{ .x = 1, .y = 2 },
             .ten => .{ .x = 2, .y = 2 },
-            .jack => .{ .x = 2, .y = 2 },
+            .jack => .{ .x = 3, .y = 2 },
             .queen => .{ .x = 0, .y = 3 },
             .king => .{ .x = 1, .y = 3 },
         };
