@@ -354,13 +354,24 @@ pub const Game = struct {
 
         // If we click on the stock, deal from it
         if (game.stockClicked(mouse_x, mouse_y)) {
-            const entry = game.board.stock.pop();
-            game.board.waste.push(entry.card, .faceup);
+            if (game.board.stock.size() > 0) {
+                const entry = game.board.stock.pop();
+                game.board.waste.push(entry.card, .faceup);
 
-            const stack_locus = game.stack_locus.waste;
+                const stack_locus = game.stack_locus.waste;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-            try game.card_locations.set_location(entry.card, locus);
+                const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+                try game.card_locations.set_location(entry.card, locus);
+            } else {
+                while (game.board.waste.popOrNull()) |entry| {
+                    game.board.stock.push(entry.card, .facedown);
+
+                    const stack_locus = game.stack_locus.stock;
+
+                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+                    try game.card_locations.set_location(entry.card, locus);
+                }
+            }
 
             return;
         }

@@ -33,6 +33,14 @@ pub fn Stack(comptime N: u16) type {
             return stack.array[stack.count - 1];
         }
 
+        pub fn popOrNull(stack: *Self) ?StackEntry {
+            if (stack.count == 0) return null;
+
+            defer stack.count -= 1;
+
+            return stack.array[stack.count - 1];
+        }
+
         pub fn peek(stack: Self) ?StackEntry {
             if (stack.count == 0) return null;
 
