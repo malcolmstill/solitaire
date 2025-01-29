@@ -352,6 +352,7 @@ pub const Game = struct {
         // If we have a card in hand our button was already done
         if (game.state.card_in_hand) |_| return;
 
+        // If we click on the stock, deal from it
         if (game.stockClicked(mouse_x, mouse_y)) {
             const entry = game.board.stock.pop();
             game.board.waste.push(entry.card, .faceup);
@@ -364,7 +365,7 @@ pub const Game = struct {
             return;
         }
 
-        // Find card that we can pick up
+        // Otherwise try and pick up one or more face up cards
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
             const locus = game.card_locations.get(card_source.stack.array[0].card);
 
