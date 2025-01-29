@@ -155,7 +155,8 @@ pub const Board = struct {
             .diamonds,
             .clubs,
             => {
-                std.debug.assert(cards.size() == 1); // We can only move one card at a time to suit stacks
+                if (cards.size() != 1) return false;
+
                 const entry = cards.array[0];
                 const card = entry.card;
 
