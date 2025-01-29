@@ -19,6 +19,14 @@ pub fn Stack(comptime N: u16) type {
             stack.array[stack.count] = .{ .card = card, .direction = direction };
         }
 
+        pub fn pushCards(stack: *Self, cards: Stack(24)) void {
+            defer stack.count += cards.size();
+
+            for (stack.count..stack.count + cards.size(), 0..) |i, j| {
+                stack.array[i] = cards.array[j];
+            }
+        }
+
         pub fn pop(stack: *Self) StackEntry {
             defer stack.count -= 1;
 
@@ -37,11 +45,11 @@ pub fn Stack(comptime N: u16) type {
             stack.array[stack.count - 1].direction = stack.array[stack.count - 1].direction.flip();
         }
 
-        pub fn slice(stack: *const Self) []StackEntry {
+        pub fn slice(stack: *Self) []StackEntry {
             return stack.array[0..stack.count];
         }
 
-        pub fn size(stack: Self) usize {
+        pub fn size(stack: Self) u8 {
             return stack.count;
         }
 
@@ -61,6 +69,25 @@ pub fn Stack(comptime N: u16) type {
             stack.count -= n;
 
             return new_stack;
+        }
+
+        const ForwardIterator = struct {
+            stack: *const Self,
+            position: usize,
+
+            pub fn next(it: *ForwardIterator) ?StackEntry {
+                // std.debug.print("next it.position = {} and it.stack.count = {}\n", .{ it.position, it.stack.count });
+                if (it.position == it.stack.count) return null;
+
+                defer it.position += 1;
+
+                return it.stack.array[it.position];
+            }
+        };
+
+        pub fn forwardIterator(stack: *const Self) ForwardIterator {
+            // std.debug.print("forwardIterator stack.position = {}, stack = {}\n", .{ stack.count, stack });
+            return .{ .stack = stack, .position = 0 };
         }
 
         const StackIterator = struct {
@@ -127,4 +154,21 @@ test "take" {
     const stack_2 = stack.take(2);
 
     std.debug.print("stack = {}, stack 2 = {}\n", .{ stack, stack_2 });
+}
+
+test "forward iterator" {
+    var stack: Stack(3) = .{};
+
+    stack.push(Card.of(.ace, .spades), .faceup);
+    stack.push(Card.of(.two, .spades), .faceup);
+
+    var it = stack.forwardIterator();
+
+    const top = it.next() orelse unreachable;
+
+    std.debug.print("card = {}\n", .{top});
+    const bottom = it.next() orelse unreachable;
+    std.debug.print("card = {}\n", .{bottom});
+
+    try std.testing.expectEqual(null, it.next());
 }

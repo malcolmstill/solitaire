@@ -3,6 +3,7 @@ const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
 const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
+const Stack = @import("stack.zig").Stack;
 const Point = @import("point.zig").Point;
 const Direction = @import("direction.zig").Direction;
 
@@ -13,11 +14,11 @@ const Direction = @import("direction.zig").Direction;
 // I think from a a temporary change, i.e. picking up a card, with a complete
 // move that changes the state of the board.
 const GameState = struct {
-    card_in_hand: ?CardInHand = null,
+    card_in_hand: ?CardsInHand = null,
 };
 
-const CardInHand = struct {
-    card: Card,
+const CardsInHand = struct {
+    stack: Stack(24),
     source: Board.Source,
     initial_card_locus: Point,
     initial_mouse: Point,
@@ -91,7 +92,7 @@ pub const Game = struct {
         var rnd = std.rand.DefaultPrng.init(seed);
 
         // Shuffle the deck
-        std.Random.shuffle(rnd.random(), Card, board.stock.slice().cards);
+        std.Random.shuffle(rnd.random(), Stack(52).StackEntry, board.stock.slice());
 
         for (0..1) |i| {
             const card = board.stock.pop().card;
@@ -203,9 +204,11 @@ pub const Game = struct {
         game.renderStack("diamonds");
         game.renderStack("clubs");
 
-        if (game.state.card_in_hand) |card_in_hand| {
+        if (game.state.card_in_hand) |*cards_in_hand| {
             // card_in_hand.card.draw();
-            game.renderCard(card_in_hand.card, .faceup);
+            for (cards_in_hand.stack.slice()) |entry| {
+                game.renderCard(entry.card, entry.direction);
+            }
         }
     }
 
@@ -225,8 +228,8 @@ pub const Game = struct {
             r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
         }
 
-        for (slice.cards, slice.directions) |card, direction| {
-            game.renderCard(card, direction);
+        for (slice) |entry| {
+            game.renderCard(entry.card, entry.direction);
         }
     }
 
@@ -363,10 +366,10 @@ pub const Game = struct {
 
         // Find card that we can pick up
         if (game.findCard(mouse_x, mouse_y)) |card_source| {
-            const locus = game.card_locations.get(card_source.card);
+            const locus = game.card_locations.get(card_source.stack.array[0].card);
 
             game.state.card_in_hand = .{
-                .card = card_source.card,
+                .stack = card_source.stack,
                 .source = card_source.source,
                 .initial_card_locus = .{ .x = locus.x, .y = locus.y },
                 .initial_mouse = .{ .x = mouse_x, .y = mouse_y },
@@ -377,22 +380,25 @@ pub const Game = struct {
     pub fn handleButtonUp(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         // If we have a card in our hand, place it where our
         // mouse is over, if the move is valid
-        if (game.state.card_in_hand) |card_in_hand| {
-            const card = card_in_hand.card;
+        if (game.state.card_in_hand) |cards_in_hand| {
+            const stack = cards_in_hand.stack;
 
             const dest = game.findDest(mouse_x, mouse_y);
 
             if (dest) |dst| {
-                if (game.board.isMoveValid(card_in_hand.card, dst.dest)) {
-                    try game.board.move(card, dst.dest);
+                if (game.board.isMoveValid(stack, dst.dest)) {
+                    try game.board.move(stack, dst.dest);
 
-                    const stack_locus = dst.locus;
+                    const dst_stack_locus = dst.locus;
                     const locus: Point = switch (dst.dest) {
-                        .spades, .hearts, .diamonds, .clubs => .{ .x = stack_locus.x, .y = stack_locus.y },
-                        else => .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) },
+                        .spades, .hearts, .diamonds, .clubs => .{ .x = dst_stack_locus.x, .y = dst_stack_locus.y },
+                        else => .{ .x = dst_stack_locus.x, .y = dst_stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) },
                     };
 
-                    try game.card_locations.set_location(card, locus);
+                    var it = stack.forwardIterator();
+                    while (it.next()) |entry| {
+                        try game.card_locations.set_location(entry.card, locus);
+                    }
 
                     game.state.card_in_hand = null;
 
@@ -400,10 +406,20 @@ pub const Game = struct {
                 }
             }
 
-            const source = card_in_hand.source;
+            const source = cards_in_hand.source;
 
-            game.board.returnCard(card, source);
-            try game.card_locations.set_location(card, card_in_hand.initial_card_locus);
+            game.board.returnCards(stack, source);
+
+            // Put cards back in correct location
+            var it = stack.forwardIterator();
+            var i: usize = 0;
+            while (it.next()) |entry| {
+                defer i += 1;
+                var locus = cards_in_hand.initial_card_locus;
+                locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
+                try game.card_locations.set_location(entry.card, locus);
+            }
+
             game.state.card_in_hand = null;
         }
     }
@@ -439,11 +455,13 @@ pub const Game = struct {
     // FIXME: we need to check to more than just the top of a stack, as we need to be able to move
     //        more than one card at a time.
     /// Find card under cusror
-    pub fn findCard(game: *Game, x: f32, y: f32) ?struct { card: Card, source: Board.Source } {
+    pub fn findCard(game: *Game, x: f32, y: f32) ?struct { stack: Stack(24), source: Board.Source } {
         inline for (comptime std.meta.tags(Board.Source)) |src| {
             var it = @field(game.board, @tagName(src)).iterator();
 
+            var i: u8 = 0;
             while (it.next()) |entry| {
+                defer i += 1;
                 const locus = game.card_locations.get(entry.card);
 
                 if (x > locus.x and x < locus.x + CARD_WIDTH) {
@@ -452,7 +470,10 @@ pub const Game = struct {
 
                         defer std.debug.print("board = {}\n", .{game.board});
 
-                        return .{ .card = @field(game.board, @tagName(src)).pop().card, .source = src };
+                        const picked_stack = @field(game.board, @tagName(src)).take(i + 1);
+                        defer std.debug.print("picked_stack = {}\n", .{picked_stack});
+
+                        return .{ .stack = picked_stack, .source = src };
                     }
                 }
             }
@@ -462,11 +483,13 @@ pub const Game = struct {
     }
 
     pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) !void {
-        if (game.state.card_in_hand) |card_in_hand| {
-            const new_x = card_in_hand.initial_card_locus.x + mouse_x - card_in_hand.initial_mouse.x;
-            const new_y = card_in_hand.initial_card_locus.y + mouse_y - card_in_hand.initial_mouse.y;
+        if (game.state.card_in_hand) |*cards_in_hand| {
+            const new_x = cards_in_hand.initial_card_locus.x + mouse_x - cards_in_hand.initial_mouse.x;
+            const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
-            try game.card_locations.set_location(card_in_hand.card, .{ .x = new_x, .y = new_y });
+            for (cards_in_hand.stack.slice(), 0..) |entry, i| {
+                try game.card_locations.set_location(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
+            }
         }
     }
 };

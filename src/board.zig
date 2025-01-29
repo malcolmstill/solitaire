@@ -8,18 +8,18 @@ pub const Board = struct {
     stock: Stack(52) = .{},
     waste: Stack(24) = .{},
 
-    row_1: Stack(12) = .{},
-    row_2: Stack(12) = .{},
-    row_3: Stack(12) = .{},
-    row_4: Stack(12) = .{},
-    row_5: Stack(12) = .{},
-    row_6: Stack(12) = .{},
-    row_7: Stack(12) = .{},
+    row_1: Stack(24) = .{},
+    row_2: Stack(24) = .{},
+    row_3: Stack(24) = .{},
+    row_4: Stack(24) = .{},
+    row_5: Stack(24) = .{},
+    row_6: Stack(24) = .{},
+    row_7: Stack(24) = .{},
 
-    spades: Stack(12) = .{},
-    hearts: Stack(12) = .{},
-    diamonds: Stack(12) = .{},
-    clubs: Stack(12) = .{},
+    spades: Stack(24) = .{},
+    hearts: Stack(24) = .{},
+    diamonds: Stack(24) = .{},
+    clubs: Stack(24) = .{},
 
     pub const Source = enum {
         waste,
@@ -68,7 +68,7 @@ pub const Board = struct {
         };
     }
 
-    fn peekDestination(board: Board, destination: Destination) ?Stack(12).StackEntry {
+    fn peekDestination(board: Board, destination: Destination) ?Stack(24).StackEntry {
         return switch (destination) {
             .row_1 => board.row_1.peek(),
             .row_2 => board.row_2.peek(),
@@ -84,41 +84,41 @@ pub const Board = struct {
         };
     }
 
-    pub fn move(board: *Board, card: Card, dest: Destination) !void {
-        if (!board.isMoveValid(card, dest)) return error.InvalidMove;
+    pub fn move(board: *Board, cards: Stack(24), dest: Destination) !void {
+        if (!board.isMoveValid(cards, dest)) return error.InvalidMove;
 
         switch (dest) {
-            .row_1 => board.row_1.push(card, .faceup),
-            .row_2 => board.row_2.push(card, .faceup),
-            .row_3 => board.row_3.push(card, .faceup),
-            .row_4 => board.row_4.push(card, .faceup),
-            .row_5 => board.row_5.push(card, .faceup),
-            .row_6 => board.row_6.push(card, .faceup),
-            .row_7 => board.row_7.push(card, .faceup),
-            .spades => board.spades.push(card, .faceup),
-            .hearts => board.hearts.push(card, .faceup),
-            .diamonds => board.diamonds.push(card, .faceup),
-            .clubs => board.clubs.push(card, .faceup),
+            .row_1 => board.row_1.pushCards(cards),
+            .row_2 => board.row_2.pushCards(cards),
+            .row_3 => board.row_3.pushCards(cards),
+            .row_4 => board.row_4.pushCards(cards),
+            .row_5 => board.row_5.pushCards(cards),
+            .row_6 => board.row_6.pushCards(cards),
+            .row_7 => board.row_7.pushCards(cards),
+            .spades => board.spades.pushCards(cards),
+            .hearts => board.hearts.pushCards(cards),
+            .diamonds => board.diamonds.pushCards(cards),
+            .clubs => board.clubs.pushCards(cards),
         }
 
         // return new_board;
     }
 
     // Return a card to its source where a move is invalid
-    pub fn returnCard(board: *Board, card: Card, src: Source) void {
+    pub fn returnCards(board: *Board, cards: Stack(24), src: Source) void {
         switch (src) {
-            .waste => board.waste.push(card, .faceup),
-            .row_1 => board.row_1.push(card, .faceup),
-            .row_2 => board.row_2.push(card, .faceup),
-            .row_3 => board.row_3.push(card, .faceup),
-            .row_4 => board.row_4.push(card, .faceup),
-            .row_5 => board.row_5.push(card, .faceup),
-            .row_6 => board.row_6.push(card, .faceup),
-            .row_7 => board.row_7.push(card, .faceup),
-            .spades => board.spades.push(card, .faceup),
-            .hearts => board.hearts.push(card, .faceup),
-            .diamonds => board.diamonds.push(card, .faceup),
-            .clubs => board.clubs.push(card, .faceup),
+            .waste => board.waste.pushCards(cards),
+            .row_1 => board.row_1.pushCards(cards),
+            .row_2 => board.row_2.pushCards(cards),
+            .row_3 => board.row_3.pushCards(cards),
+            .row_4 => board.row_4.pushCards(cards),
+            .row_5 => board.row_5.pushCards(cards),
+            .row_6 => board.row_6.pushCards(cards),
+            .row_7 => board.row_7.pushCards(cards),
+            .spades => board.spades.pushCards(cards),
+            .hearts => board.hearts.pushCards(cards),
+            .diamonds => board.diamonds.pushCards(cards),
+            .clubs => board.clubs.pushCards(cards),
         }
 
         // return new_board;
@@ -129,12 +129,16 @@ pub const Board = struct {
     /// Panics if `from` is empty.
     ///
     /// I think this needs to take into account faceupedness / facedownedness
-    pub fn isMoveValid(board: Board, card: Card, dest: Destination) bool {
+    pub fn isMoveValid(board: Board, cards: Stack(24), dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
-        std.debug.print("isMoveValid: {}, {}, dest top = {any}", .{ card, dest, dest_top });
+        std.debug.print("isMoveValid: {}, {}, dest top = {any}", .{ cards, dest, dest_top });
 
         switch (dest) {
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {
+                std.debug.assert(cards.size() >= 0);
+                const entry = cards.array[0];
+                const card = entry.card;
+
                 if (dest_top) |top| {
                     // We can place our from card on the to row stack if the colours are different and
                     // the from card is one less than the row stack top
@@ -151,6 +155,10 @@ pub const Board = struct {
             .diamonds,
             .clubs,
             => {
+                std.debug.assert(cards.size() == 1); // We can only move one card at a time to suit stacks
+                const entry = cards.array[0];
+                const card = entry.card;
+
                 const dest_suit: Card.Suit = switch (dest) {
                     .spades => .spades,
                     .hearts => .hearts,
