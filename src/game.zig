@@ -365,7 +365,7 @@ pub const Game = struct {
         }
 
         // Find card that we can pick up
-        if (game.findCard(mouse_x, mouse_y)) |card_source| {
+        if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
             const locus = game.card_locations.get(card_source.stack.array[0].card);
 
             game.state.card_in_hand = .{
@@ -455,7 +455,7 @@ pub const Game = struct {
     // FIXME: we need to check to more than just the top of a stack, as we need to be able to move
     //        more than one card at a time.
     /// Find card under cusror
-    pub fn findCard(game: *Game, x: f32, y: f32) ?struct { stack: Stack(24), source: Board.Source } {
+    pub fn findCardsToPickUp(game: *Game, x: f32, y: f32) ?struct { stack: Stack(24), source: Board.Source } {
         inline for (comptime std.meta.tags(Board.Source)) |src| {
             var it = @field(game.board, @tagName(src)).iterator();
 
@@ -464,16 +464,18 @@ pub const Game = struct {
                 defer i += 1;
                 const locus = game.card_locations.get(entry.card);
 
-                if (x > locus.x and x < locus.x + CARD_WIDTH) {
-                    if (y > locus.y and y < locus.y + CARD_HEIGHT) {
-                        std.debug.print("found card = {} in {}\n", .{ entry.card, src });
+                if (entry.direction == .faceup) {
+                    if (x > locus.x and x < locus.x + CARD_WIDTH) {
+                        if (y > locus.y and y < locus.y + CARD_HEIGHT) {
+                            std.debug.print("found card = {} in {}\n", .{ entry.card, src });
 
-                        defer std.debug.print("board = {}\n", .{game.board});
+                            defer std.debug.print("board = {}\n", .{game.board});
 
-                        const picked_stack = @field(game.board, @tagName(src)).take(i + 1);
-                        defer std.debug.print("picked_stack = {}\n", .{picked_stack});
+                            const picked_stack = @field(game.board, @tagName(src)).take(i + 1);
+                            defer std.debug.print("picked_stack = {}\n", .{picked_stack});
 
-                        return .{ .stack = picked_stack, .source = src };
+                            return .{ .stack = picked_stack, .source = src };
+                        }
                     }
                 }
             }
