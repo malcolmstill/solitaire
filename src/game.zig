@@ -365,6 +365,11 @@ pub const Game = struct {
             return;
         }
 
+        // Check if we are flipping a card
+        if (game.findCardToFlip(mouse_x, mouse_y)) {
+            return;
+        }
+
         // Otherwise try and pick up one or more face up cards
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
             const locus = game.card_locations.get(card_source.stack.array[0].card);
@@ -451,6 +456,31 @@ pub const Game = struct {
         }
 
         return null;
+    }
+
+    /// Find facedown card that we've clicked on and flip it
+    ///
+    /// Returns true if such a card was found otherwise returns false
+    pub fn findCardToFlip(game: *Game, x: f32, y: f32) bool {
+        inline for (comptime std.meta.tags(Board.Rows)) |src| {
+            var it = @field(game.board, @tagName(src)).iterator();
+
+            if (it.next()) |entry| {
+                const locus = game.card_locations.get(entry.card);
+
+                if (entry.direction == .facedown) {
+                    if (x > locus.x and x < locus.x + CARD_WIDTH) {
+                        if (y > locus.y and y < locus.y + CARD_HEIGHT) {
+                            @field(game.board, @tagName(src)).flipTop();
+
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     // FIXME: we need to check to more than just the top of a stack, as we need to be able to move

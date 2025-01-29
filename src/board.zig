@@ -21,6 +21,16 @@ pub const Board = struct {
     diamonds: Stack(24) = .{},
     clubs: Stack(24) = .{},
 
+    pub const Rows = enum {
+        row_1,
+        row_2,
+        row_3,
+        row_4,
+        row_5,
+        row_6,
+        row_7,
+    };
+
     pub const Source = enum {
         waste,
         row_1,
