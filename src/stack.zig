@@ -115,20 +115,12 @@ pub fn Stack(comptime N: u16) type {
             return .{ .stack = stack, .position = stack.count };
         }
 
-        pub fn format(
-            stack: Self,
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            _ = fmt;
-            _ = options;
-
+        pub fn format(stack: Self, writer: *std.Io.Writer) !void {
             try writer.print("[", .{});
             for (stack.array[0..stack.count], 0..) |card_state, i| {
                 if (i > 0) try writer.print(", ", .{});
 
-                try writer.print("{}", .{card_state.card});
+                try writer.print("{f}", .{card_state.card});
             }
             try writer.print("]", .{});
         }

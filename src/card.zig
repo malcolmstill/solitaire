@@ -37,10 +37,7 @@ pub const Card = struct {
             };
         }
 
-        pub fn format(rank: Rank, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-            _ = fmt;
-            _ = options;
-
+        pub fn format(rank: Rank, writer: *std.Io.Writer) !void {
             const symbol = switch (rank) {
                 .ace => "A",
                 .two => "2",
@@ -72,10 +69,7 @@ pub const Card = struct {
         diamonds,
         clubs,
 
-        pub fn format(suit: Suit, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-            _ = fmt;
-            _ = options;
-
+        pub fn format(suit: Suit, writer: anytype) !void {
             const symbol = switch (suit) {
                 .spades => "♠",
                 .hearts => "♥",
@@ -105,11 +99,8 @@ pub const Card = struct {
         return card.rank.order();
     }
 
-    pub fn format(card: Card, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = fmt;
-        _ = options;
-
-        try writer.print("{} {}", .{ card.suit, card.rank });
+    pub fn format(card: Card, writer: *std.Io.Writer) !void {
+        try writer.print("{f} {f}", .{ card.suit, card.rank });
     }
 };
 

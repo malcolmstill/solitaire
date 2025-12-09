@@ -141,7 +141,7 @@ pub const Board = struct {
     /// I think this needs to take into account faceupedness / facedownedness
     pub fn isMoveValid(board: Board, cards: Stack(24), dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
-        std.debug.print("isMoveValid: {}, {}, dest top = {any}", .{ cards, dest, dest_top });
+        std.debug.print("isMoveValid: {f}, {any}, dest top = {any}", .{ cards, dest, dest_top });
 
         switch (dest) {
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {
@@ -214,27 +214,24 @@ pub const Board = struct {
         return n;
     }
 
-    pub fn format(board: Board, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = fmt;
-        _ = options;
-
+    pub fn format(board: Board, writer: *std.Io.Writer) !void {
         try writer.print("board ({} cards):\n", .{board.count()});
-        try writer.print("stock: {}\n", .{board.stock});
-        try writer.print("waste: {}\n", .{board.waste});
+        try writer.print("stock: {f}\n", .{board.stock});
+        try writer.print("waste: {f}\n", .{board.waste});
         try writer.print("\n", .{});
 
-        try writer.print("row 1: {}\n", .{board.row_1});
-        try writer.print("row 2: {}\n", .{board.row_2});
-        try writer.print("row 3: {}\n", .{board.row_3});
-        try writer.print("row 4: {}\n", .{board.row_4});
-        try writer.print("row 5: {}\n", .{board.row_5});
-        try writer.print("row 6: {}\n", .{board.row_6});
-        try writer.print("row 7: {}\n", .{board.row_7});
+        try writer.print("row 1: {f}\n", .{board.row_1});
+        try writer.print("row 2: {f}\n", .{board.row_2});
+        try writer.print("row 3: {f}\n", .{board.row_3});
+        try writer.print("row 4: {f}\n", .{board.row_4});
+        try writer.print("row 5: {f}\n", .{board.row_5});
+        try writer.print("row 6: {f}\n", .{board.row_6});
+        try writer.print("row 7: {f}\n", .{board.row_7});
         try writer.print("\n", .{});
 
-        try writer.print("spades: {}\n", .{board.spades});
-        try writer.print("hearts: {}\n", .{board.hearts});
-        try writer.print("diamonds: {}\n", .{board.diamonds});
-        try writer.print("clubs: {}\n", .{board.clubs});
+        try writer.print("spades: {f}\n", .{board.spades});
+        try writer.print("hearts: {f}\n", .{board.hearts});
+        try writer.print("diamonds: {f}\n", .{board.diamonds});
+        try writer.print("clubs: {f}\n", .{board.clubs});
     }
 };

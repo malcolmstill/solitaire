@@ -64,7 +64,7 @@ pub const Game = struct {
 
         return .{
             .board = try Game.deal(0, &card_locations),
-            .history = std.ArrayList(Board).init(allocator),
+            .history = std.ArrayList(Board){},
             .state = .{},
             .card_locations = card_locations,
             .tex = tex,
@@ -74,8 +74,8 @@ pub const Game = struct {
         };
     }
 
-    pub fn deinit(game: *Game) void {
-        game.history.deinit();
+    pub fn deinit(game: *Game, allocator: std.mem.Allocator) void {
+        game.history.deinit(allocator);
         game.card_locations.deinit();
     }
 
@@ -89,7 +89,7 @@ pub const Game = struct {
             }
         }
 
-        var rnd = std.rand.DefaultPrng.init(seed);
+        var rnd = std.Random.DefaultPrng.init(seed);
 
         // Shuffle the deck
         std.Random.shuffle(rnd.random(), Stack(52).StackEntry, board.stock.slice());
@@ -220,8 +220,8 @@ pub const Game = struct {
         {
             const offset = 0;
 
-            const emptyRect = .{ .x = stack_locus.x + offset, .y = stack_locus.y + offset, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const emptyColour = .{ .a = 50, .r = 76, .g = 76, .b = 76 };
+            const emptyRect: r.Rectangle = .{ .x = stack_locus.x + offset, .y = stack_locus.y + offset, .width = CARD_WIDTH, .height = CARD_HEIGHT };
+            const emptyColour: r.Color = .{ .a = 50, .r = 76, .g = 76, .b = 76 };
 
             const roundness = 0.25;
             const segments = 20;
@@ -242,30 +242,30 @@ pub const Game = struct {
         // Draw shadow
         {
             const offset = CARD_WIDTH * 0.05;
-            const shadowRect = .{ .x = locus.x + offset, .y = locus.y + offset, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const shadowColor = .{ .a = 120, .r = 76, .g = 76, .b = 76 };
+            const shadowRect: r.Rectangle = .{ .x = locus.x + offset, .y = locus.y + offset, .width = CARD_WIDTH, .height = CARD_HEIGHT };
+            const shadowColor: r.Color = .{ .a = 120, .r = 76, .g = 76, .b = 76 };
             r.DrawRectangleRounded(shadowRect, roundness, segments, shadowColor);
         }
 
         // TODO: draw outline
         {
-            const rect = .{ .x = locus.x - CARD_STROKE, .y = locus.y - CARD_STROKE, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
-            const outLineColor = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+            const rect: r.Rectangle = .{ .x = locus.x - CARD_STROKE, .y = locus.y - CARD_STROKE, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
+            const outLineColor: r.Color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
             r.DrawRectangleRounded(rect, roundness, segments, outLineColor);
         }
 
         // Draw body
         {
-            const rect = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const bodyColor = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+            const rect: r.Rectangle = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
+            const bodyColor: r.Color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
             r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
         }
 
         // Conditionally draw card back
         switch (direction) {
             .facedown => {
-                const backRect = .{ .x = locus.x + CARD_BACK_GUTTER, .y = locus.y + CARD_BACK_GUTTER, .width = CARD_BACK_WIDTH, .height = CARD_BACK_HEIGHT };
-                const backColor = .{ .a = 200, .r = 220, .g = 50, .b = 50 };
+                const backRect: r.Rectangle = .{ .x = locus.x + CARD_BACK_GUTTER, .y = locus.y + CARD_BACK_GUTTER, .width = CARD_BACK_WIDTH, .height = CARD_BACK_HEIGHT };
+                const backColor: r.Color = .{ .a = 200, .r = 220, .g = 50, .b = 50 };
                 r.DrawRectangleRounded(backRect, 0.15, segments, backColor);
             },
             .faceup => {
@@ -299,17 +299,17 @@ pub const Game = struct {
             .king => .{ .x = 1, .y = 3 },
         };
 
-        const src = .{
+        const src: r.Rectangle = .{
             .x = suit_index.x * sprite_width,
             .y = suit_index.y * sprite_width,
             .width = sprite_width,
             .height = sprite_width,
         };
 
-        const top_left = .{ .x = locus.x + 0.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
-        const top_right = .{ .x = locus.x + CARD_WIDTH - 13.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
-        const bottom_left = .{ .x = locus.x + 13.0, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
-        const bottom_right = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
+        const top_left: r.Rectangle = .{ .x = locus.x + 0.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
+        const top_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH - 13.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
+        const bottom_left: r.Rectangle = .{ .x = locus.x + 13.0, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
+        const bottom_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
 
         r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
         r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
@@ -330,17 +330,17 @@ pub const Game = struct {
             .diamonds, .spades => .{ .x = 2, .y = 3 },
         };
 
-        const src = .{
+        const src: r.Rectangle = .{
             .x = suit_index.x * sprite_width,
             .y = suit_index.y * sprite_width,
             .width = sprite_width,
             .height = sprite_width,
         };
 
-        const top_left = .{ .x = locus.x + 0.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
-        const top_right = .{ .x = locus.x + CARD_WIDTH - sprite_width - 1.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
-        const bottom_left = .{ .x = locus.x + sprite_width + 1.0, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
-        const bottom_right = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
+        const top_left: r.Rectangle = .{ .x = locus.x + 0.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
+        const top_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH - sprite_width - 1.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
+        const bottom_left: r.Rectangle = .{ .x = locus.x + sprite_width + 1.0, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
+        const bottom_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
 
         r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
         r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
@@ -509,12 +509,12 @@ pub const Game = struct {
                 if (entry.direction == .faceup) {
                     if (x > locus.x and x < locus.x + CARD_WIDTH) {
                         if (y > locus.y and y < locus.y + CARD_HEIGHT) {
-                            std.debug.print("found card = {} in {}\n", .{ entry.card, src });
+                            std.debug.print("found card = {f} in {t}\n", .{ entry.card, src });
 
-                            defer std.debug.print("board = {}\n", .{game.board});
+                            defer std.debug.print("board = {f}\n", .{game.board});
 
                             const picked_stack = @field(game.board, @tagName(src)).take(i + 1);
-                            defer std.debug.print("picked_stack = {}\n", .{picked_stack});
+                            defer std.debug.print("picked_stack = {f}\n", .{picked_stack});
 
                             return .{ .stack = picked_stack, .source = src };
                         }
