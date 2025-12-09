@@ -15,5 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: mlugg/setup-zig@v2.0.5
+      - name: Install libglfw3
+        run: sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev
       - name: Build solitaire
         run: zig build
