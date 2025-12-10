@@ -47,7 +47,7 @@ pub fn main() !void {
             r.EndDrawing();
 
             // Wait as long as we can to try for same-frame input latency
-            _ = std.posix.nanosleep(0, 10 * 1000 * 1000);
+            std.Thread.sleep(10 * 1000 * 1000);
         }
 
         r.ClearBackground(r.GRAY);
