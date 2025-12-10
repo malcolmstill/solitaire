@@ -1,3 +1,0 @@
-#!/bin/sh
-
-zig-0.13.0 build test

@@ -9,7 +9,14 @@ pub fn Stack(comptime N: u16) type {
         array: [N]StackEntry = undefined,
         count: u8 = 0,
 
-        pub const StackEntry = struct { card: Card, direction: Direction };
+        pub const StackEntry = struct {
+            card: Card,
+            direction: Direction,
+
+            pub fn format(entry: StackEntry, writer: *std.Io.Writer) !void {
+                try writer.print("{f} {}", .{ entry.card, entry.direction });
+            }
+        };
 
         const Self = @This();
 
@@ -137,9 +144,9 @@ test {
 
     const top = it.next() orelse unreachable;
 
-    std.debug.print("card = {}\n", .{top});
+    std.debug.print("card = {f}\n", .{top});
     const bottom = it.next() orelse unreachable;
-    std.debug.print("card = {}\n", .{bottom});
+    std.debug.print("card = {f}\n", .{bottom});
 
     try std.testing.expectEqual(null, it.next());
 }
@@ -153,7 +160,7 @@ test "take" {
 
     const stack_2 = stack.take(2);
 
-    std.debug.print("stack = {}, stack 2 = {}\n", .{ stack, stack_2 });
+    std.debug.print("stack = {f}, stack 2 = {f}\n", .{ stack, stack_2 });
 }
 
 test "forward iterator" {
@@ -166,9 +173,9 @@ test "forward iterator" {
 
     const top = it.next() orelse unreachable;
 
-    std.debug.print("card = {}\n", .{top});
+    std.debug.print("card = {f}\n", .{top});
     const bottom = it.next() orelse unreachable;
-    std.debug.print("card = {}\n", .{bottom});
+    std.debug.print("card = {f}\n", .{bottom});
 
     try std.testing.expectEqual(null, it.next());
 }
