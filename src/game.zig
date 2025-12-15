@@ -63,7 +63,7 @@ pub const Game = struct {
         }
 
         return .{
-            .board = try Game.deal(0, &card_locations),
+            .board = try Game.deal(1, &card_locations),
             .history = std.ArrayList(Board){},
             .state = .{},
             .card_locations = card_locations,
@@ -413,8 +413,16 @@ pub const Game = struct {
                     };
 
                     var it = stack.forwardIterator();
+                    var i: usize = 0;
                     while (it.next()) |entry| {
-                        try game.card_locations.set_location(entry.card, locus);
+                        var target = locus;
+
+                        // Shift each card down a little
+                        target.y = target.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
+
+                        try game.card_locations.set_location(entry.card, target);
+
+                        i += 1;
                     }
 
                     game.state.card_in_hand = null;
