@@ -402,12 +402,15 @@ pub const Game = struct {
 
             const dest = game.findDest(mouse_x, mouse_y);
 
+            // For a move to be valid we must be over some destiantion
+            // and the move must otherwise be valid. If both of these
+            // conditions are met we move the cards and empty our hand.
             if (dest) |dst| {
                 if (game.board.isMoveValid(stack, dst.dest)) {
                     try game.board.move(stack, dst.dest);
 
                     const dst_stack_locus = dst.locus;
-                    const locus: Point = switch (dst.dest) {
+                    const locus_top: Point = switch (dst.dest) {
                         .spades, .hearts, .diamonds, .clubs => .{ .x = dst_stack_locus.x, .y = dst_stack_locus.y },
                         else => .{ .x = dst_stack_locus.x, .y = dst_stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) },
                     };
@@ -415,14 +418,13 @@ pub const Game = struct {
                     var it = stack.forwardIterator();
                     var i: usize = 0;
                     while (it.next()) |entry| {
-                        var target = locus;
+                        defer i += 1;
+                        var locus = locus_top;
 
                         // Shift each card down a little
-                        target.y = target.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
+                        locus.y = locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
 
-                        try game.card_locations.set_location(entry.card, target);
-
-                        i += 1;
+                        try game.card_locations.set_location(entry.card, locus);
                     }
 
                     game.state.card_in_hand = null;
@@ -431,6 +433,8 @@ pub const Game = struct {
                 }
             }
 
+            // Otherwise the move was not valid and the cards are returned to
+            // their source.
             const source = cards_in_hand.source;
 
             game.board.returnCards(stack, source);
