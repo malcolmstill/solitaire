@@ -217,17 +217,31 @@ pub const Game = struct {
         const slice = @field(game.board, stack).slice();
         const stack_locus = @field(game.stack_locus, stack);
 
+        // Draw "empty" pile
         {
             const offset = 0;
 
-            const emptyRect: r.Rectangle = .{ .x = stack_locus.x + offset, .y = stack_locus.y + offset, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const emptyColour: r.Color = .{ .a = 50, .r = 76, .g = 76, .b = 76 };
+            const emptyRect: r.Rectangle = .{
+                .x = stack_locus.x + offset,
+                .y = stack_locus.y + offset,
+                .width = CARD_WIDTH,
+                .height = CARD_HEIGHT,
+            };
+
+            const emptyColour: r.Color = .{
+                .a = 50,
+                .r = 76,
+                .g = 76,
+                .b = 76,
+            };
 
             const roundness = 0.25;
             const segments = 20;
+
             r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
         }
 
+        // Draw the cards
         for (slice) |entry| {
             game.renderCard(entry.card, entry.direction);
         }
