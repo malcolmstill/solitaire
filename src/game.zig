@@ -14,7 +14,7 @@ const Direction = @import("direction.zig").Direction;
 // I think from a a temporary change, i.e. picking up a card, with a complete
 // move that changes the state of the board.
 const GameState = struct {
-    card_in_hand: ?CardsInHand = null,
+    cards_in_hand: ?CardsInHand = null,
 };
 
 const CardsInHand = struct {
@@ -204,7 +204,7 @@ pub const Game = struct {
         game.renderStack("diamonds");
         game.renderStack("clubs");
 
-        if (game.state.card_in_hand) |*cards_in_hand| {
+        if (game.state.cards_in_hand) |*cards_in_hand| {
             // card_in_hand.card.draw();
             for (cards_in_hand.stack.slice()) |entry| {
                 game.renderCard(entry.card, entry.direction);
@@ -364,7 +364,7 @@ pub const Game = struct {
 
     pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         // If we have a card in hand our button was already done
-        if (game.state.card_in_hand) |_| return;
+        if (game.state.cards_in_hand) |_| return;
 
         // If we click on the stock, deal from it
         if (game.stockClicked(mouse_x, mouse_y)) {
@@ -399,7 +399,7 @@ pub const Game = struct {
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
             const locus = game.card_locations.get(card_source.stack.array[0].card);
 
-            game.state.card_in_hand = .{
+            game.state.cards_in_hand = .{
                 .stack = card_source.stack,
                 .source = card_source.source,
                 .initial_card_locus = .{ .x = locus.x, .y = locus.y },
@@ -411,7 +411,7 @@ pub const Game = struct {
     pub fn handleButtonUp(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         // If we have a card in our hand, place it where our
         // mouse is over, if the move is valid
-        if (game.state.card_in_hand) |cards_in_hand| {
+        if (game.state.cards_in_hand) |cards_in_hand| {
             const stack = cards_in_hand.stack;
 
             const dest = game.findDest(mouse_x, mouse_y);
@@ -441,7 +441,7 @@ pub const Game = struct {
                         try game.card_locations.set_location(entry.card, locus);
                     }
 
-                    game.state.card_in_hand = null;
+                    game.state.cards_in_hand = null;
 
                     return;
                 }
@@ -465,7 +465,7 @@ pub const Game = struct {
                 try game.card_locations.set_location(entry.card, locus);
             }
 
-            game.state.card_in_hand = null;
+            game.state.cards_in_hand = null;
         }
     }
 
@@ -564,7 +564,7 @@ pub const Game = struct {
     }
 
     pub fn handleMove(game: *Game, mouse_x: f32, mouse_y: f32) !void {
-        if (game.state.card_in_hand) |*cards_in_hand| {
+        if (game.state.cards_in_hand) |*cards_in_hand| {
             const new_x = cards_in_hand.initial_card_locus.x + mouse_x - cards_in_hand.initial_mouse.x;
             const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
@@ -577,7 +577,7 @@ pub const Game = struct {
     /// Check the game is in a consistent state
     pub fn assert_consistent(game: *Game) void {
         // Count all cards
-        const in_hand = if (game.state.card_in_hand) |in_hand| in_hand.stack.size() else 0;
+        const in_hand = if (game.state.cards_in_hand) |in_hand| in_hand.stack.size() else 0;
 
         std.debug.assert(in_hand + game.board.count() == 52);
 
