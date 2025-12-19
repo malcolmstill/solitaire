@@ -480,16 +480,25 @@ pub const Game = struct {
         return true;
     }
 
+    /// Get destination over which we may drop if such a destination exists
+    ///
+    /// Returns (optionally):
+    /// - destination tag, e.g. .aces, .row1 etc
+    /// - the (stack) locus
+    /// - count of cards in the destination stack
     pub fn findDest(game: *Game, mouse_x: f32, mouse_y: f32) ?struct { dest: Board.Destination, locus: Point, count: usize } {
+        // Look at each valid destination pile (everything but stock and waste)
         inline for (comptime std.meta.tags(Board.Destination)) |dst| {
-            const locus = @field(game.stack_locus, @tagName(dst));
-            const stack = @field(game.board, @tagName(dst));
+            const stack_locus: Point = @field(game.stack_locus, @tagName(dst));
+            const stack: Stack(24) = @field(game.board, @tagName(dst));
+
             const count = stack.size();
-            const offset = CARD_STACK_OFFSET * @as(f32, @floatFromInt(count));
+
+            const locus: Point = if (stack.peek()) |top| game.card_locations.get(top.card) else stack_locus;
 
             if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
-                if (mouse_y > locus.y + offset and mouse_y < locus.y + CARD_HEIGHT + offset) {
-                    return .{ .dest = dst, .locus = locus, .count = count };
+                if (mouse_y > locus.y and mouse_y < locus.y + CARD_HEIGHT) {
+                    return .{ .dest = dst, .locus = stack_locus, .count = count };
                 }
             }
         }
