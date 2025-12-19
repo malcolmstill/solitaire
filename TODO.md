@@ -7,3 +7,7 @@
     - [take waste, put spades]
 
 - Can't pick up faceup group of cards, can only pick up top card
+
+# Interesting seeds
+
+- 2: Bug where can't place 5 spades on 6 hearts

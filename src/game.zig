@@ -63,7 +63,7 @@ pub const Game = struct {
         }
 
         return .{
-            .board = try Game.deal(1, &card_locations),
+            .board = try Game.deal(2, &card_locations),
             .history = std.ArrayList(Board){},
             .state = .{},
             .card_locations = card_locations,
