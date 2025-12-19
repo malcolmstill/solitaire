@@ -141,7 +141,12 @@ pub const Board = struct {
     /// I think this needs to take into account faceupedness / facedownedness
     pub fn isMoveValid(board: Board, cards: Stack(24), dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
-        std.debug.print("isMoveValid: {f}, {any}, dest top = {any}", .{ cards, dest, dest_top });
+
+        if (dest_top) |top| {
+            std.debug.print("isMoveValid: {f}, {any}, dest top = {f}", .{ cards, dest, top });
+        } else {
+            std.debug.print("isMoveValid: {f}, {any}, dest top = empty", .{ cards, dest });
+        }
 
         switch (dest) {
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {
@@ -165,7 +170,10 @@ pub const Board = struct {
             .diamonds,
             .clubs,
             => {
-                if (cards.size() != 1) return false;
+                if (cards.size() != 1) {
+                    std.debug.print("Can't drop more than one card on suit piles", .{});
+                    return false;
+                }
 
                 const entry = cards.array[0];
                 const card = entry.card;
@@ -179,7 +187,7 @@ pub const Board = struct {
                 };
 
                 if (dest_top) |to| {
-                    // Our stack is blank, we only allow ace
+                    // We are placing card on another card...we must be one higher
                     if (card.suit == dest_suit and card.order() == to.card.order() + 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace

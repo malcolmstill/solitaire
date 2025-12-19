@@ -445,6 +445,8 @@ pub const Game = struct {
 
                     return;
                 }
+            } else {
+                std.debug.print("No destination...returning cards", .{});
             }
 
             // Otherwise the move was not valid and the cards are returned to
