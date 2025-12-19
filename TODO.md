@@ -10,10 +10,10 @@
 
 - [ ] Fuzzy hit detection (mouse pointer doesn't have to be over destination, just most of the card in hand)
 - [ ] Animation
-- [ ] Screen shake!
-- [ ] Nice card artwork
 - [ ] Use sokol
+- [ ] Nice card artwork
 - [ ] Win detection
+- [ ] New game
+- [ ] Screen shake!
 - [ ] Scoring
 - [ ] Three-card draw
-- [ ] New game
