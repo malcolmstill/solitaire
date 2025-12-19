@@ -6,8 +6,8 @@
   - Stupid idea (maybe): double entry bookkeeping for moves
     - [take waste, put spades]
 
-- Can't pick up faceup group of cards, can only pick up top card
+# Features
 
-# Interesting seeds
-
-- 2: Bug where can't place 5 spades on 6 hearts
+- [ ] Fuzzy hit detection (mouse pointer doesn't have to be over destination, just most of the card in hand)
+- [ ] Animation
+- [ ] Screen shake!
