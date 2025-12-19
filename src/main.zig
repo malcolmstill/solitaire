@@ -64,6 +64,8 @@ pub fn main() !void {
             try game.handleButtonUp(x, y);
         }
 
+        game.assert_consistent();
+
         game.render();
     }
 }

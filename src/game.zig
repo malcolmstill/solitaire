@@ -562,6 +562,17 @@ pub const Game = struct {
             }
         }
     }
+
+    /// Check the game is in a consistent state
+    pub fn assert_consistent(game: *Game) void {
+        // Count all cards
+        const in_hand = if (game.state.card_in_hand) |in_hand| in_hand.stack.size() else 0;
+
+        std.debug.assert(in_hand + game.board.count() == 52);
+
+        // TODO: all face up cards in rows must alternate red / black and be plus-one of card beneath
+        // TODO: all cards in ace, hearts, spades, clubs piles are same suit and are ascending order
+    }
 };
 
 const CardLocations = struct {
