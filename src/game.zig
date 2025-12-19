@@ -304,7 +304,7 @@ pub const Game = struct {
             .four => .{ .x = 0, .y = 1 },
             .five => .{ .x = 1, .y = 1 },
             .six => .{ .x = 2, .y = 1 },
-            .seven => .{ .x = 2, .y = 1 },
+            .seven => .{ .x = 3, .y = 1 },
             .eight => .{ .x = 0, .y = 2 },
             .nine => .{ .x = 1, .y = 2 },
             .ten => .{ .x = 2, .y = 2 },
