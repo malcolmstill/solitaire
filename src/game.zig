@@ -187,7 +187,7 @@ pub const Game = struct {
         game.board = board;
     }
 
-    pub fn render(game: *Game, mouse_x: f32, mouse_y: f32) void {
+    pub fn render(game: *Game) void {
         game.renderStack("stock");
         game.renderStack("waste");
 
@@ -208,28 +208,38 @@ pub const Game = struct {
 
         // Debug draw dest
         if (game.debug) {
-            if (game.findDest(mouse_x, mouse_y)) |dst| {
-                const stack_locus = dst.locus;
-                const offset = 0;
+            if (game.state.cards_in_hand) |in_hand| {
+                if (game.findDropDest()) |dst| {
+                    const stack_locus = dst.locus;
+                    const offset = 0;
 
-                const emptyRect: r.Rectangle = .{
-                    .x = stack_locus.x + offset,
-                    .y = stack_locus.y + offset,
-                    .width = CARD_WIDTH,
-                    .height = CARD_HEIGHT,
-                };
+                    const emptyRect: r.Rectangle = .{
+                        .x = stack_locus.x + offset,
+                        .y = stack_locus.y + offset,
+                        .width = CARD_WIDTH,
+                        .height = CARD_HEIGHT,
+                    };
 
-                const emptyColour: r.Color = .{
-                    .a = 70,
-                    .r = 176,
-                    .g = 176,
-                    .b = 0,
-                };
+                    const emptyColour: r.Color = if (game.board.isMoveValid(in_hand.stack, dst.dest))
+                        .{
+                            .a = 50,
+                            .r = 0,
+                            .g = 176,
+                            .b = 0,
+                        }
+                    else
+                        .{
+                            .a = 70,
+                            .r = 176,
+                            .g = 176,
+                            .b = 0,
+                        };
 
-                const roundness = 0.25;
-                const segments = 20;
+                    const roundness = 0.25;
+                    const segments = 20;
 
-                r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+                    r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+                }
             }
         }
 
@@ -437,13 +447,13 @@ pub const Game = struct {
         }
     }
 
-    pub fn handleButtonUp(game: *Game, mouse_x: f32, mouse_y: f32) !void {
+    pub fn handleButtonUp(game: *Game) !void {
         // If we have a card in our hand, place it where our
         // mouse is over, if the move is valid
         if (game.state.cards_in_hand) |cards_in_hand| {
             const in_hand_stack = cards_in_hand.stack;
 
-            const dest = game.findDest(mouse_x, mouse_y);
+            const dest = game.findDropDest();
 
             // For a move to be valid we must be over some destiantion
             // and the move must otherwise be valid. If both of these
@@ -514,24 +524,33 @@ pub const Game = struct {
 
     /// Get destination over which we may drop if such a destination exists.
     ///
-    /// This implementation requires the mouse pointer to be over the destination.
+    /// Panics if no cards in hand (caller must ensure only called with cards in hand)
     ///
     /// Returns (optionally):
     /// - destination tag, e.g. .aces, .row1 etc
     /// - the (stack) locus
     /// - count of cards in the destination stack
-    pub fn findDest(game: *Game, mouse_x: f32, mouse_y: f32) ?struct { dest: Board.Destination, locus: Point, count: usize } {
+    pub fn findDropDest(game: *Game) ?struct { dest: Board.Destination, locus: Point, count: usize } {
+        const in_hand = game.state.cards_in_hand orelse @panic("findDropDest only makes sense with cards in hand");
+
         // Look at each valid destination pile (everything but stock and waste)
         inline for (comptime std.meta.tags(Board.Destination)) |dst| {
             const stack_locus: Point = @field(game.stack_locus, @tagName(dst));
             const stack: Stack(24) = @field(game.board, @tagName(dst));
 
+            // Use centre of card to decide if enough card is covering destination
+            const card_locus = game.card_locations.get(in_hand.stack.array[0].card);
+            const pointer: Point = .{
+                .x = card_locus.x + CARD_WIDTH / 2,
+                .y = card_locus.y + CARD_HEIGHT / 2,
+            };
+
             const count = stack.size();
 
             const locus: Point = if (stack.peek()) |top| game.card_locations.get(top.card) else stack_locus;
 
-            if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
-                if (mouse_y > locus.y and mouse_y < locus.y + CARD_HEIGHT) {
+            if (pointer.x > locus.x and pointer.x < locus.x + CARD_WIDTH) {
+                if (pointer.y > locus.y and pointer.y < locus.y + CARD_HEIGHT) {
                     return .{ .dest = dst, .locus = locus, .count = count };
                 }
             }

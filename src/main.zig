@@ -70,12 +70,12 @@ pub fn main() !void {
         }
 
         if (r.IsMouseButtonReleased(r.MOUSE_BUTTON_LEFT)) {
-            try game.handleButtonUp(x, y);
+            try game.handleButtonUp();
         }
 
         game.assert_consistent();
 
-        game.render(x, y);
+        game.render();
     }
 }
 

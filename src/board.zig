@@ -142,11 +142,11 @@ pub const Board = struct {
     pub fn isMoveValid(board: Board, cards: Stack(24), dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
 
-        if (dest_top) |top| {
-            std.debug.print("isMoveValid: {f}, {any}, dest top = {f}", .{ cards, dest, top });
-        } else {
-            std.debug.print("isMoveValid: {f}, {any}, dest top = empty", .{ cards, dest });
-        }
+        // if (dest_top) |top| {
+        //     std.debug.print("isMoveValid: {f}, {any}, dest top = {f}", .{ cards, dest, top });
+        // } else {
+        //     std.debug.print("isMoveValid: {f}, {any}, dest top = empty", .{ cards, dest });
+        // }
 
         switch (dest) {
             .row_1, .row_2, .row_3, .row_4, .row_5, .row_6, .row_7 => {

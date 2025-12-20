@@ -9,7 +9,7 @@
 # Features
 
 - [x] Debug draw dest
-- [ ] Fuzzy hit detection (mouse pointer doesn't have to be over destination, just most of the card in hand)
+- [x] Fuzzy hit detection (mouse pointer doesn't have to be over destination, just most of the card in hand)
 - [ ] Animation
 - [ ] Use sokol
 - [ ] Nice card artwork
