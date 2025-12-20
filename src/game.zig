@@ -25,6 +25,7 @@ const CardsInHand = struct {
 };
 
 pub const Game = struct {
+    debug: bool,
     board: Board,
     history: std.ArrayList(Board),
     state: GameState,
@@ -48,7 +49,7 @@ pub const Game = struct {
         clubs: Point = CLUBS_LOCUS,
     },
 
-    pub fn init(allocator: std.mem.Allocator) !Game {
+    pub fn init(allocator: std.mem.Allocator, debug: bool) !Game {
         var card_locations = CardLocations.init(allocator);
 
         const tex = r.LoadTexture("src/ace_club.png");
@@ -63,6 +64,7 @@ pub const Game = struct {
         }
 
         return .{
+            .debug = debug,
             .board = try Game.deal(2, &card_locations),
             .history = std.ArrayList(Board){},
             .state = .{},
@@ -185,7 +187,7 @@ pub const Game = struct {
         game.board = board;
     }
 
-    pub fn render(game: *Game) void {
+    pub fn render(game: *Game, mouse_x: f32, mouse_y: f32) void {
         game.renderStack("stock");
         game.renderStack("waste");
 
@@ -203,6 +205,33 @@ pub const Game = struct {
         game.renderStack("hearts");
         game.renderStack("diamonds");
         game.renderStack("clubs");
+
+        // Debug draw dest
+        if (game.debug) {
+            if (game.findDest(mouse_x, mouse_y)) |dst| {
+                const stack_locus = dst.locus;
+                const offset = 0;
+
+                const emptyRect: r.Rectangle = .{
+                    .x = stack_locus.x + offset,
+                    .y = stack_locus.y + offset,
+                    .width = CARD_WIDTH,
+                    .height = CARD_HEIGHT,
+                };
+
+                const emptyColour: r.Color = .{
+                    .a = 70,
+                    .r = 176,
+                    .g = 176,
+                    .b = 0,
+                };
+
+                const roundness = 0.25;
+                const segments = 20;
+
+                r.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+            }
+        }
 
         if (game.state.cards_in_hand) |*cards_in_hand| {
             // card_in_hand.card.draw();
@@ -412,7 +441,7 @@ pub const Game = struct {
         // If we have a card in our hand, place it where our
         // mouse is over, if the move is valid
         if (game.state.cards_in_hand) |cards_in_hand| {
-            const stack = cards_in_hand.stack;
+            const in_hand_stack = cards_in_hand.stack;
 
             const dest = game.findDest(mouse_x, mouse_y);
 
@@ -420,23 +449,26 @@ pub const Game = struct {
             // and the move must otherwise be valid. If both of these
             // conditions are met we move the cards and empty our hand.
             if (dest) |dst| {
-                if (game.board.isMoveValid(stack, dst.dest)) {
-                    try game.board.move(stack, dst.dest);
+                if (game.board.isMoveValid(in_hand_stack, dst.dest)) {
+                    try game.board.move(in_hand_stack, dst.dest);
 
-                    const dst_stack_locus = dst.locus;
-                    const locus_top: Point = switch (dst.dest) {
-                        .spades, .hearts, .diamonds, .clubs => .{ .x = dst_stack_locus.x, .y = dst_stack_locus.y },
-                        else => .{ .x = dst_stack_locus.x, .y = dst_stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(dst.count)) },
+                    const offset: f32 = switch (dst.dest) {
+                        .spades, .hearts, .diamonds, .clubs => 0.0,
+                        else => CARD_STACK_OFFSET,
                     };
 
-                    var it = stack.forwardIterator();
-                    var i: usize = 0;
+                    // If we're placing on an empty destination we need to correct
+                    // the shift that we otherwise get from offset.
+                    const empty = if (dst.count == 0) offset else 0.0;
+
+                    var it = in_hand_stack.forwardIterator();
+                    var i: usize = 1;
                     while (it.next()) |entry| {
                         defer i += 1;
-                        var locus = locus_top;
 
                         // Shift each card down a little
-                        locus.y = locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
+                        var locus = dst.locus;
+                        locus.y = locus.y + offset * @as(f32, @floatFromInt(i)) - empty;
 
                         try game.card_locations.set_location(entry.card, locus);
                     }
@@ -453,10 +485,10 @@ pub const Game = struct {
             // their source.
             const source = cards_in_hand.source;
 
-            game.board.returnCards(stack, source);
+            game.board.returnCards(in_hand_stack, source);
 
             // Put cards back in correct location
-            var it = stack.forwardIterator();
+            var it = in_hand_stack.forwardIterator();
             var i: usize = 0;
             while (it.next()) |entry| {
                 defer i += 1;
@@ -498,7 +530,7 @@ pub const Game = struct {
 
             if (mouse_x > locus.x and mouse_x < locus.x + CARD_WIDTH) {
                 if (mouse_y > locus.y and mouse_y < locus.y + CARD_HEIGHT) {
-                    return .{ .dest = dst, .locus = stack_locus, .count = count };
+                    return .{ .dest = dst, .locus = locus, .count = count };
                 }
             }
         }

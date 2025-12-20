@@ -12,7 +12,16 @@ pub fn main() !void {
     r.SetTargetFPS(60);
     defer r.CloseWindow();
 
-    var game = try Game.init(allocator);
+    var debug = false;
+
+    var args = std.process.args();
+    while (args.next()) |arg| {
+        if (std.mem.eql(u8, arg, "--debug")) {
+            debug = true;
+        }
+    }
+
+    var game = try Game.init(allocator, debug);
     defer game.deinit(allocator);
 
     // Ideally we'd turn this on:
@@ -66,7 +75,7 @@ pub fn main() !void {
 
         game.assert_consistent();
 
-        game.render();
+        game.render(x, y);
     }
 }
 
