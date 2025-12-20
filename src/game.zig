@@ -5,6 +5,7 @@ const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 const Point = @import("point.zig").Point;
+const Position = @import("card_locations.zig").Position;
 const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
 
@@ -190,24 +191,24 @@ pub const Game = struct {
         game.board = board;
     }
 
-    pub fn render(game: *Game) void {
-        game.renderStack("stock");
-        game.renderStack("waste");
+    pub fn render(game: *Game, dt: f32) void {
+        game.renderStack("stock", dt);
+        game.renderStack("waste", dt);
 
         // Rows
-        game.renderStack("row_1");
-        game.renderStack("row_2");
-        game.renderStack("row_3");
-        game.renderStack("row_4");
-        game.renderStack("row_5");
-        game.renderStack("row_6");
-        game.renderStack("row_7");
+        game.renderStack("row_1", dt);
+        game.renderStack("row_2", dt);
+        game.renderStack("row_3", dt);
+        game.renderStack("row_4", dt);
+        game.renderStack("row_5", dt);
+        game.renderStack("row_6", dt);
+        game.renderStack("row_7", dt);
 
         // Suit piles
-        game.renderStack("spades");
-        game.renderStack("hearts");
-        game.renderStack("diamonds");
-        game.renderStack("clubs");
+        game.renderStack("spades", dt);
+        game.renderStack("hearts", dt);
+        game.renderStack("diamonds", dt);
+        game.renderStack("clubs", dt);
 
         // Debug draw dest
         if (game.debug) {
@@ -249,12 +250,12 @@ pub const Game = struct {
         if (game.state.cards_in_hand) |*cards_in_hand| {
             // card_in_hand.card.draw();
             for (cards_in_hand.stack.slice()) |entry| {
-                game.renderCard(entry.card, entry.direction);
+                game.renderCard(entry.card, entry.direction, dt);
             }
         }
     }
 
-    fn renderStack(game: *Game, comptime stack: []const u8) void {
+    fn renderStack(game: *Game, comptime stack: []const u8, dt: f32) void {
         //
         const slice = @field(game.board, stack).slice();
         const stack_locus = @field(game.stack_locus, stack);
@@ -285,12 +286,12 @@ pub const Game = struct {
 
         // Draw the cards
         for (slice) |entry| {
-            game.renderCard(entry.card, entry.direction);
+            game.renderCard(entry.card, entry.direction, dt);
         }
     }
 
-    pub fn renderCard(game: *Game, card: Card, direction: Direction) void {
-        const locus = game.card_locations.get(card);
+    pub fn renderCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
+        const locus = game.card_locations.update(card, dt);
 
         const roundness = 0.25;
         const segments = 20;
@@ -439,7 +440,7 @@ pub const Game = struct {
 
         // Otherwise try and pick up one or more face up cards
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
-            const locus = game.card_locations.get(card_source.stack.array[0].card);
+            const locus = game.card_locations.get(card_source.stack.array[0].card).current();
 
             game.state.cards_in_hand = .{
                 .stack = card_source.stack,
@@ -483,7 +484,7 @@ pub const Game = struct {
                         var locus = dst.locus;
                         locus.y = locus.y + offset * @as(f32, @floatFromInt(i)) - empty;
 
-                        try game.card_locations.set_location(entry.card, locus);
+                        try game.card_locations.start_animation(entry.card, locus);
                     }
 
                     game.state.cards_in_hand = null;
@@ -507,7 +508,7 @@ pub const Game = struct {
                 defer i += 1;
                 var locus = cards_in_hand.initial_card_locus;
                 locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
-                try game.card_locations.set_location(entry.card, locus);
+                try game.card_locations.start_animation(entry.card, locus);
             }
 
             game.state.cards_in_hand = null;
@@ -542,7 +543,7 @@ pub const Game = struct {
             const stack: Stack(24) = @field(game.board, @tagName(dst));
 
             // Use centre of card to decide if enough card is covering destination
-            const card_locus = game.card_locations.get(in_hand.stack.array[0].card);
+            const card_locus = game.card_locations.get(in_hand.stack.array[0].card).current();
             const pointer: Point = .{
                 .x = card_locus.x + CARD_WIDTH / 2,
                 .y = card_locus.y + CARD_HEIGHT / 2,
@@ -550,7 +551,7 @@ pub const Game = struct {
 
             const count = stack.size();
 
-            const locus: Point = if (stack.peek()) |top| game.card_locations.get(top.card) else stack_locus;
+            const locus: Point = if (stack.peek()) |top| game.card_locations.get(top.card).current() else stack_locus;
 
             if (pointer.x > locus.x and pointer.x < locus.x + CARD_WIDTH) {
                 if (pointer.y > locus.y and pointer.y < locus.y + CARD_HEIGHT) {
@@ -570,7 +571,7 @@ pub const Game = struct {
             var it = @field(game.board, @tagName(src)).iterator();
 
             if (it.next()) |entry| {
-                const locus = game.card_locations.get(entry.card);
+                const locus = game.card_locations.get(entry.card).current();
 
                 if (entry.direction == .facedown) {
                     if (x > locus.x and x < locus.x + CARD_WIDTH) {
@@ -597,7 +598,7 @@ pub const Game = struct {
             var i: u8 = 0;
             while (it.next()) |entry| {
                 defer i += 1;
-                const locus = game.card_locations.get(entry.card);
+                const locus = game.card_locations.get(entry.card).current();
 
                 if (entry.direction == .faceup) {
                     if (x > locus.x and x < locus.x + CARD_WIDTH) {

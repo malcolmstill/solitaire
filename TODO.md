@@ -10,7 +10,7 @@
 
 - [x] Debug draw dest
 - [x] Fuzzy hit detection (mouse pointer doesn't have to be over destination, just most of the card in hand)
-- [ ] Animation
+- [x] Animation
 - [ ] Use sokol
 - [ ] emscripten
 - [ ] Nice card artwork

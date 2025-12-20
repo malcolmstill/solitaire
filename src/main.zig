@@ -88,7 +88,7 @@ pub fn main() !void {
 
         game.assert_consistent();
 
-        game.render();
+        game.render(r.GetFrameTime());
     }
 }
 
