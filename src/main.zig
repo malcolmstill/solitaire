@@ -13,15 +13,28 @@ pub fn main() !void {
     defer r.CloseWindow();
 
     var debug = false;
+    var seed = std.crypto.random.int(u64);
 
+    var expect_next_seed = false;
     var args = std.process.args();
     while (args.next()) |arg| {
         if (std.mem.eql(u8, arg, "--debug")) {
             debug = true;
         }
+
+        if (std.mem.eql(u8, arg, "--seed")) {
+            expect_next_seed = true;
+        } else if (expect_next_seed) {
+            seed = try std.fmt.parseInt(u64, arg, 10);
+            expect_next_seed = false;
+        }
     }
 
-    var game = try Game.init(allocator, debug);
+    if (expect_next_seed) {
+        @panic("Expected integer seed");
+    }
+
+    var game = try Game.init(allocator, seed, debug);
     defer game.deinit(allocator);
 
     // Ideally we'd turn this on:

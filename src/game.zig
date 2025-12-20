@@ -49,7 +49,9 @@ pub const Game = struct {
         clubs: Point = CLUBS_LOCUS,
     },
 
-    pub fn init(allocator: std.mem.Allocator, debug: bool) !Game {
+    pub fn init(allocator: std.mem.Allocator, seed: u64, debug: bool) !Game {
+        std.debug.print("Initialising game with seed {}\n", .{seed});
+
         var card_locations = CardLocations.init(allocator);
 
         const tex = r.LoadTexture("src/ace_club.png");
@@ -65,7 +67,7 @@ pub const Game = struct {
 
         return .{
             .debug = debug,
-            .board = try Game.deal(2, &card_locations),
+            .board = try Game.deal(seed, &card_locations),
             .history = std.ArrayList(Board){},
             .state = .{},
             .card_locations = card_locations,
