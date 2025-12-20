@@ -156,8 +156,8 @@ pub const Board = struct {
 
                 if (dest_top) |top| {
                     // We can place our from card on the to row stack if the colours are different and
-                    // the from card is one less than the row stack top
-                    if (top.card.color() != card.color() and card.order() == top.card.order() - 1) return true;
+                    // the from card is one less than the row stack top AND the top is face up
+                    if (top.direction == .faceup and top.card.color() != card.color() and card.order() == top.card.order() - 1) return true;
                 } else {
                     // We can move a king onto a blank row stack
                     if (card.rank == .king) return true;
@@ -188,7 +188,7 @@ pub const Board = struct {
 
                 if (dest_top) |to| {
                     // We are placing card on another card...we must be one higher
-                    if (card.suit == dest_suit and card.order() == to.card.order() + 1) return true;
+                    if (to.direction == .faceup and card.suit == dest_suit and card.order() == to.card.order() + 1) return true;
                 } else {
                     // Our stack is blank, we only allow ace
                     if (card.suit == dest_suit and card.rank == .ace) return true;
