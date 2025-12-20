@@ -69,7 +69,11 @@ pub fn main() !void {
             r.EndDrawing();
 
             // Wait as long as we can to try for same-frame input latency
-            std.Thread.sleep(10 * 1000 * 1000);
+            // TODO: check if this makes sense...I think we want that delay
+            // but we don't want to actually sleep. Rather we'd do some
+            // epoll stuff.
+            // const delay = 0.60 * r.GetFrameTime() * 1000.0 * 1000.0 * 1000.0;
+            // std.Thread.sleep(@intFromFloat(delay));
         }
 
         r.ClearBackground(r.GRAY);
