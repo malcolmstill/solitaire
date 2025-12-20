@@ -512,7 +512,9 @@ pub const Game = struct {
         return true;
     }
 
-    /// Get destination over which we may drop if such a destination exists
+    /// Get destination over which we may drop if such a destination exists.
+    ///
+    /// This implementation requires the mouse pointer to be over the destination.
     ///
     /// Returns (optionally):
     /// - destination tag, e.g. .aces, .row1 etc
