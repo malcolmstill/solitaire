@@ -6,6 +6,7 @@ const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 const Point = @import("point.zig").Point;
 const Direction = @import("direction.zig").Direction;
+const CardLocations = @import("card_locations.zig").CardLocations;
 
 // We need some sort of game state that at a minimum tells
 // us if we have a card in hand.
@@ -638,26 +639,6 @@ pub const Game = struct {
 
         // TODO: all face up cards in rows must alternate red / black and be plus-one of card beneath
         // TODO: all cards in ace, hearts, spades, clubs piles are same suit and are ascending order
-    }
-};
-
-const CardLocations = struct {
-    map: std.AutoHashMap(Card, Point),
-
-    pub fn init(allocator: std.mem.Allocator) CardLocations {
-        return .{ .map = std.AutoHashMap(Card, Point).init(allocator) };
-    }
-
-    pub fn deinit(card_locations: *CardLocations) void {
-        card_locations.map.deinit();
-    }
-
-    pub fn get(card_locations: *CardLocations, card: Card) Point {
-        return card_locations.map.get(card) orelse unreachable;
-    }
-
-    pub fn set_location(card_locations: *CardLocations, card: Card, locus: Point) !void {
-        try card_locations.map.put(card, locus);
     }
 };
 
