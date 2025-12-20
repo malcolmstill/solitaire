@@ -12,6 +12,7 @@
 - [x] Fuzzy hit detection (mouse pointer doesn't have to be over destination, just most of the card in hand)
 - [ ] Animation
 - [ ] Use sokol
+- [ ] emscripten
 - [ ] Nice card artwork
 - [ ] Win detection
 - [ ] New game
