@@ -17,5 +17,6 @@
 - [ ] Win detection
 - [ ] New game
 - [ ] Screen shake!
+- [ ] Messy mode
 - [ ] Scoring
 - [ ] Three-card draw
