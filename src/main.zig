@@ -13,6 +13,7 @@ pub fn main() !void {
     defer r.CloseWindow();
 
     var debug = false;
+    var sloppy = false;
     var seed = std.crypto.random.int(u64);
 
     var expect_next_seed = false;
@@ -28,13 +29,17 @@ pub fn main() !void {
             seed = try std.fmt.parseInt(u64, arg, 10);
             expect_next_seed = false;
         }
+
+        if (std.mem.eql(u8, arg, "--sloppy")) {
+            sloppy = true;
+        }
     }
 
     if (expect_next_seed) {
         @panic("Expected integer seed");
     }
 
-    var game = try Game.init(allocator, seed, debug);
+    var game = try Game.init(allocator, seed, sloppy, debug);
     defer game.deinit(allocator);
 
     // Ideally we'd turn this on:
@@ -98,6 +103,7 @@ pub fn main() !void {
 
 test {
     _ = @import("card.zig");
+    _ = @import("card_locations.zig");
     _ = @import("board.zig");
     _ = @import("point.zig");
     _ = @import("stack.zig");

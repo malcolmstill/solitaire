@@ -1,4 +1,4 @@
-const r = @cImport(@cInclude("raylib.h"));
+// const r = @cImport(@cInclude("raylib.h"));
 
 const std = @import("std");
 const Board = @import("board.zig").Board;
@@ -8,6 +8,8 @@ const Point = @import("point.zig").Point;
 const Position = @import("card_locations.zig").Position;
 const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
+const rndr = @import("render.zig");
+const r = rndr.r;
 
 // We need some sort of game state that at a minimum tells
 // us if we have a card in hand.
@@ -28,9 +30,13 @@ const CardsInHand = struct {
 
 pub const Game = struct {
     debug: bool,
+    // With sloppy mode cards dropped may have some slight random rotation / offset
+    sloppy: bool,
     board: Board,
     history: std.ArrayList(Board),
     state: GameState,
+    textures: std.AutoHashMap(Card, r.RenderTexture2D),
+    texture_facedown: r.RenderTexture2D,
     card_locations: CardLocations,
     tex: r.struct_Texture,
     red_corner: r.struct_Texture,
@@ -51,10 +57,10 @@ pub const Game = struct {
         clubs: Point = CLUBS_LOCUS,
     },
 
-    pub fn init(allocator: std.mem.Allocator, seed: u64, debug: bool) !Game {
+    pub fn init(allocator: std.mem.Allocator, seed: u64, sloppy: bool, debug: bool) !Game {
         std.debug.print("Initialising game with seed {}\n", .{seed});
 
-        var card_locations = CardLocations.init(allocator);
+        var card_locations = CardLocations.init(allocator, sloppy);
 
         const tex = r.LoadTexture("src/ace_club.png");
 
@@ -63,16 +69,31 @@ pub const Game = struct {
 
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
-                try card_locations.set_location(Card.of(rank, suit), STOCK_LOCUS);
+                try card_locations.setLocation(Card.of(rank, suit), STOCK_LOCUS);
             }
         }
 
+        var textures = std.AutoHashMap(Card, r.RenderTexture2D).init(allocator);
+        for (std.meta.tags(Card.Suit)) |suit| {
+            for (std.meta.tags(Card.Rank)) |rank| {
+                const card = Card.of(rank, suit);
+                const texture = rndr.prerenderCard(card, red_corner, black_corner);
+
+                try textures.put(card, texture);
+            }
+        }
+
+        const texture_facedown = rndr.prerenderFacedownCard();
+
         return .{
             .debug = debug,
+            .sloppy = sloppy,
             .board = try Game.deal(seed, &card_locations),
             .history = std.ArrayList(Board){},
             .state = .{},
             .card_locations = card_locations,
+            .textures = textures,
+            .texture_facedown = texture_facedown,
             .tex = tex,
             .red_corner = red_corner,
             .black_corner = black_corner,
@@ -106,7 +127,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_1.push(card, .facedown);
         }
@@ -116,7 +137,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_2.push(card, .facedown);
         }
@@ -126,7 +147,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_3.push(card, .facedown);
         }
@@ -136,7 +157,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_4.push(card, .facedown);
         }
@@ -146,7 +167,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_5.push(card, .facedown);
         }
@@ -156,7 +177,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_6.push(card, .facedown);
         }
@@ -166,7 +187,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_7.push(card, .facedown);
         }
@@ -220,8 +241,8 @@ pub const Game = struct {
                     const emptyRect: r.Rectangle = .{
                         .x = stack_locus.x + offset,
                         .y = stack_locus.y + offset,
-                        .width = CARD_WIDTH,
-                        .height = CARD_HEIGHT,
+                        .width = rndr.CARD_WIDTH,
+                        .height = rndr.CARD_HEIGHT,
                     };
 
                     const emptyColour: r.Color = if (game.board.isMoveValid(in_hand.stack, dst.dest))
@@ -267,8 +288,8 @@ pub const Game = struct {
             const emptyRect: r.Rectangle = .{
                 .x = stack_locus.x + offset,
                 .y = stack_locus.y + offset,
-                .width = CARD_WIDTH,
-                .height = CARD_HEIGHT,
+                .width = rndr.CARD_WIDTH,
+                .height = rndr.CARD_HEIGHT,
             };
 
             const emptyColour: r.Color = .{
@@ -291,118 +312,35 @@ pub const Game = struct {
     }
 
     pub fn renderCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
-        const locus = game.card_locations.update(card, dt);
+        const position = game.card_locations.update(card, dt);
+        const locus = position.locus;
 
-        const roundness = 0.25;
-        const segments = 20;
+        const target: r.RenderTexture2D = switch (direction) {
+            .faceup => game.textures.get(card) orelse unreachable,
+            .facedown => game.texture_facedown,
+        };
 
-        // Draw shadow
-        {
-            const offset = CARD_WIDTH * 0.05;
-            const shadowRect: r.Rectangle = .{ .x = locus.x + offset, .y = locus.y + offset, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const shadowColor: r.Color = .{ .a = 120, .r = 76, .g = 76, .b = 76 };
-            r.DrawRectangleRounded(shadowRect, roundness, segments, shadowColor);
-        }
-
-        // TODO: draw outline
-        {
-            const rect: r.Rectangle = .{ .x = locus.x - CARD_STROKE, .y = locus.y - CARD_STROKE, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
-            const outLineColor: r.Color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
-            r.DrawRectangleRounded(rect, roundness, segments, outLineColor);
-        }
-
-        // Draw body
-        {
-            const rect: r.Rectangle = .{ .x = locus.x, .y = locus.y, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-            const bodyColor: r.Color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
-            r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
-        }
-
-        // Conditionally draw card back
-        switch (direction) {
-            .facedown => {
-                const backRect: r.Rectangle = .{ .x = locus.x + CARD_BACK_GUTTER, .y = locus.y + CARD_BACK_GUTTER, .width = CARD_BACK_WIDTH, .height = CARD_BACK_HEIGHT };
-                const backColor: r.Color = .{ .a = 200, .r = 220, .g = 50, .b = 50 };
-                r.DrawRectangleRounded(backRect, 0.15, segments, backColor);
+        r.DrawTexturePro(
+            target.texture,
+            r.Rectangle{
+                .x = 0,
+                .y = 0,
+                .width = @floatFromInt(target.texture.width),
+                .height = @floatFromInt(-target.texture.height),
             },
-            .faceup => {
-                game.drawCornerRank(card, locus);
-                game.drawCornerSuit(card, locus);
+            r.Rectangle{
+                .x = locus.x - rndr.CARD_STROKE + @as(f32, @floatFromInt(target.texture.width)) / 2.0,
+                .y = locus.y - rndr.CARD_STROKE + @as(f32, @floatFromInt(target.texture.height)) / 2.0,
+                .width = @floatFromInt(target.texture.width),
+                .height = @floatFromInt(target.texture.height),
             },
-        }
-    }
-
-    fn drawCornerRank(game: *Game, card: Card, locus: Point) void {
-        const sprite_width = 12.0;
-
-        const tex = switch (card.suit) {
-            .hearts, .diamonds => game.red_corner,
-            .spades, .clubs => game.black_corner,
-        };
-
-        const suit_index: struct { x: f32, y: f32 } = switch (card.rank) {
-            .ace => .{ .x = 0, .y = 0 },
-            .two => .{ .x = 2, .y = 0 },
-            .three => .{ .x = 3, .y = 0 },
-            .four => .{ .x = 0, .y = 1 },
-            .five => .{ .x = 1, .y = 1 },
-            .six => .{ .x = 2, .y = 1 },
-            .seven => .{ .x = 3, .y = 1 },
-            .eight => .{ .x = 0, .y = 2 },
-            .nine => .{ .x = 1, .y = 2 },
-            .ten => .{ .x = 2, .y = 2 },
-            .jack => .{ .x = 3, .y = 2 },
-            .queen => .{ .x = 0, .y = 3 },
-            .king => .{ .x = 1, .y = 3 },
-        };
-
-        const src: r.Rectangle = .{
-            .x = suit_index.x * sprite_width,
-            .y = suit_index.y * sprite_width,
-            .width = sprite_width,
-            .height = sprite_width,
-        };
-
-        const top_left: r.Rectangle = .{ .x = locus.x + 0.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
-        const top_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH - 13.0, .y = locus.y + 2.0, .width = 12.0, .height = 12.0 };
-        const bottom_left: r.Rectangle = .{ .x = locus.x + 13.0, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
-        const bottom_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
-
-        r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
-        r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
-        r.DrawTexturePro(tex, src, bottom_left, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
-        r.DrawTexturePro(tex, src, bottom_right, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
-    }
-
-    fn drawCornerSuit(game: *Game, card: Card, locus: Point) void {
-        const sprite_width = 12.0;
-
-        const tex = switch (card.suit) {
-            .hearts, .diamonds => game.red_corner,
-            .spades, .clubs => game.black_corner,
-        };
-
-        const suit_index: struct { x: f32, y: f32 } = switch (card.suit) {
-            .hearts, .clubs => .{ .x = 3, .y = 3 },
-            .diamonds, .spades => .{ .x = 2, .y = 3 },
-        };
-
-        const src: r.Rectangle = .{
-            .x = suit_index.x * sprite_width,
-            .y = suit_index.y * sprite_width,
-            .width = sprite_width,
-            .height = sprite_width,
-        };
-
-        const top_left: r.Rectangle = .{ .x = locus.x + 0.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
-        const top_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH - sprite_width - 1.0, .y = locus.y + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
-        const bottom_left: r.Rectangle = .{ .x = locus.x + sprite_width + 1.0, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
-        const bottom_right: r.Rectangle = .{ .x = locus.x + CARD_WIDTH, .y = locus.y + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
-
-        r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
-        r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
-        r.DrawTexturePro(tex, src, bottom_left, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
-        r.DrawTexturePro(tex, src, bottom_right, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
+            r.Vector2{
+                .x = @as(f32, @floatFromInt(target.texture.width)) / 2.0,
+                .y = @as(f32, @floatFromInt(target.texture.height)) / 2.0,
+            },
+            position.angle,
+            r.WHITE,
+        );
     }
 
     pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) !void {
@@ -418,7 +356,7 @@ pub const Game = struct {
                 const stack_locus = game.stack_locus.waste;
 
                 const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-                try game.card_locations.set_location(entry.card, locus);
+                try game.card_locations.setLocation(entry.card, locus);
             } else {
                 while (game.board.waste.popOrNull()) |entry| {
                     game.board.stock.push(entry.card, .facedown);
@@ -426,7 +364,7 @@ pub const Game = struct {
                     const stack_locus = game.stack_locus.stock;
 
                     const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-                    try game.card_locations.set_location(entry.card, locus);
+                    try game.card_locations.setLocation(entry.card, locus);
                 }
             }
 
@@ -484,7 +422,7 @@ pub const Game = struct {
                         var locus = dst.locus;
                         locus.y = locus.y + offset * @as(f32, @floatFromInt(i)) - empty;
 
-                        try game.card_locations.start_animation(entry.card, locus);
+                        try game.card_locations.startAnimation(entry.card, locus);
                     }
 
                     game.state.cards_in_hand = null;
@@ -508,7 +446,7 @@ pub const Game = struct {
                 defer i += 1;
                 var locus = cards_in_hand.initial_card_locus;
                 locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
-                try game.card_locations.start_animation(entry.card, locus);
+                try game.card_locations.startAnimation(entry.card, locus);
             }
 
             game.state.cards_in_hand = null;
@@ -519,9 +457,9 @@ pub const Game = struct {
         const locus = game.stack_locus.stock;
 
         if (mouse_x < locus.x) return false;
-        if (mouse_x > locus.x + CARD_WIDTH) return false;
+        if (mouse_x > locus.x + rndr.CARD_WIDTH) return false;
         if (mouse_y < locus.y) return false;
-        if (mouse_y > locus.y + CARD_HEIGHT) return false;
+        if (mouse_y > locus.y + rndr.CARD_HEIGHT) return false;
 
         return true;
     }
@@ -545,16 +483,16 @@ pub const Game = struct {
             // Use centre of card to decide if enough card is covering destination
             const card_locus = game.card_locations.get(in_hand.stack.array[0].card).current();
             const pointer: Point = .{
-                .x = card_locus.x + CARD_WIDTH / 2,
-                .y = card_locus.y + CARD_HEIGHT / 2,
+                .x = card_locus.x + rndr.CARD_WIDTH / 2,
+                .y = card_locus.y + rndr.CARD_HEIGHT / 2,
             };
 
             const count = stack.size();
 
             const locus: Point = if (stack.peek()) |top| game.card_locations.get(top.card).current() else stack_locus;
 
-            if (pointer.x > locus.x and pointer.x < locus.x + CARD_WIDTH) {
-                if (pointer.y > locus.y and pointer.y < locus.y + CARD_HEIGHT) {
+            if (pointer.x > locus.x and pointer.x < locus.x + rndr.CARD_WIDTH) {
+                if (pointer.y > locus.y and pointer.y < locus.y + rndr.CARD_HEIGHT) {
                     return .{ .dest = dst, .locus = locus, .count = count };
                 }
             }
@@ -574,8 +512,8 @@ pub const Game = struct {
                 const locus = game.card_locations.get(entry.card).current();
 
                 if (entry.direction == .facedown) {
-                    if (x > locus.x and x < locus.x + CARD_WIDTH) {
-                        if (y > locus.y and y < locus.y + CARD_HEIGHT) {
+                    if (x > locus.x and x < locus.x + rndr.CARD_WIDTH) {
+                        if (y > locus.y and y < locus.y + rndr.CARD_HEIGHT) {
                             @field(game.board, @tagName(src)).flipTop();
 
                             return true;
@@ -601,8 +539,8 @@ pub const Game = struct {
                 const locus = game.card_locations.get(entry.card).current();
 
                 if (entry.direction == .faceup) {
-                    if (x > locus.x and x < locus.x + CARD_WIDTH) {
-                        if (y > locus.y and y < locus.y + CARD_HEIGHT) {
+                    if (x > locus.x and x < locus.x + rndr.CARD_WIDTH) {
+                        if (y > locus.y and y < locus.y + rndr.CARD_HEIGHT) {
                             std.debug.print("found card = {f} in {t}\n", .{ entry.card, src });
 
                             defer std.debug.print("board = {f}\n", .{game.board});
@@ -626,7 +564,7 @@ pub const Game = struct {
             const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
             for (cards_in_hand.stack.slice(), 0..) |entry, i| {
-                try game.card_locations.set_location(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
+                try game.card_locations.setLocation(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
             }
         }
     }
@@ -643,16 +581,6 @@ pub const Game = struct {
     }
 };
 
-const CARD_WIDTH = 60.0;
-const CARD_RATIO = 1.4;
-const CARD_HEIGHT = CARD_WIDTH * CARD_RATIO;
-const CARD_BACK_GUTTER = 6.0;
-const CARD_BACK_WIDTH = CARD_WIDTH - 2 * CARD_BACK_GUTTER;
-const CARD_BACK_HEIGHT = CARD_HEIGHT - 2 * CARD_BACK_GUTTER;
-const CARD_STROKE = 1.0;
-const CARD_STROKE_WIDTH = CARD_WIDTH + 2.0 * CARD_STROKE;
-const CARD_STROKE_HEIGHT = CARD_HEIGHT + 2.0 * CARD_STROKE;
-
 pub const STOCK_LOCUS: Point = .{ .x = 20, .y = 20 };
 pub const WASTE_LOCUS: Point = .{ .x = 90, .y = 20 };
 
@@ -660,7 +588,7 @@ const ROW_Y = 120;
 const HORIZONTAL_PADDING = 10;
 
 fn stack_x(comptime i: f64) f64 {
-    return 2 * HORIZONTAL_PADDING + i * (CARD_WIDTH + HORIZONTAL_PADDING);
+    return 2 * HORIZONTAL_PADDING + i * (rndr.CARD_WIDTH + HORIZONTAL_PADDING);
 }
 
 pub const ROW_1_LOCUS: Point = .{ .x = stack_x(0), .y = ROW_Y };
