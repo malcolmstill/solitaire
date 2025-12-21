@@ -8,7 +8,7 @@ const Point = @import("point.zig").Point;
 const Position = @import("card_locations.zig").Position;
 const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
-const rndr = @import("render.zig");
+const rndr = @import("prerender.zig");
 const r = rndr.r;
 
 // We need some sort of game state that at a minimum tells
