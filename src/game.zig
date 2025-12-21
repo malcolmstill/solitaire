@@ -329,14 +329,14 @@ pub const Game = struct {
                 .height = @floatFromInt(-target.texture.height),
             },
             r.Rectangle{
-                .x = locus.x - rndr.CARD_STROKE,
-                .y = locus.y - rndr.CARD_STROKE,
+                .x = locus.x - rndr.CARD_STROKE + @as(f32, @floatFromInt(target.texture.width)) / 2.0,
+                .y = locus.y - rndr.CARD_STROKE + @as(f32, @floatFromInt(target.texture.height)) / 2.0,
                 .width = @floatFromInt(target.texture.width),
                 .height = @floatFromInt(target.texture.height),
             },
             r.Vector2{
-                .x = 0.0,
-                .y = 0.0,
+                .x = @as(f32, @floatFromInt(target.texture.width)) / 2.0,
+                .y = @as(f32, @floatFromInt(target.texture.height)) / 2.0,
             },
             position.angle,
             r.WHITE,
