@@ -21,7 +21,7 @@
 - [ ] Scoring
 - [ ] Three-card draw
 - [ ] Nice card artwork
-- [ ] sloppy mode
+- [x] sloppy mode
 - [ ] Screen shake!
 - [ ] Messy mode
 - [ ] emscripten
