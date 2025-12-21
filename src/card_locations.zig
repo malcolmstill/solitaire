@@ -1,12 +1,17 @@
 const std = @import("std");
 const Card = @import("card.zig").Card;
 const Point = @import("point.zig").Point;
+const Vec2D = @import("point.zig").Vec2D;
 
 pub const CardLocations = struct {
     map: std.AutoHashMap(Card, Position),
+    sloppy: bool,
 
-    pub fn init(allocator: std.mem.Allocator) CardLocations {
-        return .{ .map = std.AutoHashMap(Card, Position).init(allocator) };
+    pub fn init(allocator: std.mem.Allocator, sloppy: bool) CardLocations {
+        return .{
+            .map = std.AutoHashMap(Card, Position).init(allocator),
+            .sloppy = sloppy,
+        };
     }
 
     pub fn deinit(card_locations: *CardLocations) void {
@@ -17,6 +22,11 @@ pub const CardLocations = struct {
         return card_locations.map.get(card) orelse unreachable;
     }
 
+    // pub fn randomize(card_locations: *CardLocations, card: Card) void {
+    //     const rot = std.crypto.random.float(f32) - 0.5;
+
+    // }
+
     /// Set card position (immediately) to a fixed position.
     ///
     /// If it was animating this will stop the animation
@@ -25,16 +35,33 @@ pub const CardLocations = struct {
     }
 
     /// Start an animation
-    pub fn start_animation(card_locations: *CardLocations, card: Card, end: Point) !void {
+    pub fn start_animation(card_locations: *CardLocations, card: Card, end_locus: Point) !void {
         // Read the current location
-        const start = card_locations.get(card).current();
+        const start = card_locations.get(card).current_with_rot();
 
-        const position: Position = .{ .motion = .{ .start = start, .end = end, .current = start } };
+        // If sloppy mode is on, randomly generate an end angle
+        const end: RotatedPosition = if (card_locations.sloppy) .{
+            .locus = end_locus,
+            .angle = std.crypto.random.float(f32) - 0.5,
+        } else .{
+            .locus = end_locus,
+            .angle = 0.0,
+        };
+
+        const position: Position = .{
+            .motion = .{
+                .end = end,
+                .current = start,
+            },
+        };
 
         try card_locations.map.put(card, position);
     }
 
-    pub fn update(card_locations: *CardLocations, card: Card, dt: f32) Point {
+    /// Update (i.e. animate) the location of a card based upon a dt
+    ///
+    /// TODO: detect animation is finished and replace motion with stopped.
+    pub fn update(card_locations: *CardLocations, card: Card, dt: f32) RotatedPosition {
         const entry = card_locations.map.getEntry(card) orelse unreachable;
 
         const speed = 25.0;
@@ -42,15 +69,13 @@ pub const CardLocations = struct {
         switch (entry.value_ptr.*) {
             .stopped => |point| return point,
             .motion => |*motion| {
-                const dir = motion.end.sub(motion.current);
+                const dir = motion.end.locus.sub(motion.current.locus);
+
+                const shift = Vec2D.new(dir.x * dt * speed, dir.y * dt * speed);
 
                 motion.* = Animation{
-                    .start = motion.start,
                     .end = motion.end,
-                    .current = Point{
-                        .x = motion.current.x + dir.x * dt * speed,
-                        .y = motion.current.y + dir.y * dt * speed,
-                    },
+                    .current = motion.current.translate(shift),
                 };
 
                 return motion.current;
@@ -65,24 +90,49 @@ pub const PositionKind = enum {
 };
 
 pub const Position = union(PositionKind) {
-    stopped: Point,
+    stopped: RotatedPosition,
     motion: Animation,
 
+    /// Return locus of position (no rotation information)
     pub fn current(position: Position) Point {
+        return switch (position) {
+            .stopped => |point| point.locus,
+            .motion => |motion| motion.current.locus,
+        };
+    }
+
+    pub fn current_with_rot(position: Position) RotatedPosition {
         return switch (position) {
             .stopped => |point| point,
             .motion => |motion| motion.current,
         };
     }
 
+    /// Convert point (x, y) into static Position (i.e. stopped)
+    ///
+    /// Assumes no rotation
     pub fn from_point(point: Point) Position {
-        return .{ .stopped = point };
+        return .{ .stopped = .{ .locus = point, .angle = 0.0 } };
     }
 };
 
 pub const Animation = struct {
-    start: Point,
-    end: Point,
+    // start: RotatedPosition,
+    end: RotatedPosition,
 
-    current: Point,
+    current: RotatedPosition,
+};
+
+// Objects with area can be at a location and rotated
+// (around, say, the center)
+pub const RotatedPosition = struct {
+    locus: Point,
+    angle: f32,
+
+    pub fn translate(p: RotatedPosition, v: Point) RotatedPosition {
+        return .{
+            .locus = p.locus.add(v),
+            .angle = p.angle,
+        };
+    }
 };
