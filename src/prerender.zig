@@ -44,8 +44,8 @@ pub fn prerenderCard(card: Card, red_corner: r.Texture, black_corner: r.Texture)
         r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
     }
 
-    drawCornerRank(card, red_corner, black_corner);
-    drawCornerSuit(card, red_corner, black_corner);
+    prerenderDrawCornerRank(card, red_corner, black_corner);
+    prerenderDrawCornerSuit(card, red_corner, black_corner);
 
     return target;
 }
@@ -83,7 +83,7 @@ pub fn prerenderFacedownCard() r.RenderTexture2D {
     return target;
 }
 
-fn drawCornerRank(card: Card, red_corner: r.Texture, black_corner: r.Texture) void {
+fn prerenderDrawCornerRank(card: Card, red_corner: r.Texture, black_corner: r.Texture) void {
     const sprite_width = 12.0;
 
     const tex = switch (card.suit) {
@@ -125,7 +125,7 @@ fn drawCornerRank(card: Card, red_corner: r.Texture, black_corner: r.Texture) vo
     r.DrawTexturePro(tex, src, bottom_right, .{ .x = 0.0, .y = 0.0 }, 180.0, r.WHITE);
 }
 
-fn drawCornerSuit(card: Card, red_corner: r.Texture, black_corner: r.Texture) void {
+fn prerenderDrawCornerSuit(card: Card, red_corner: r.Texture, black_corner: r.Texture) void {
     const sprite_width = 12.0;
 
     const tex = switch (card.suit) {
