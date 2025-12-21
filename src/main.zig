@@ -103,6 +103,7 @@ pub fn main() !void {
 
 test {
     _ = @import("card.zig");
+    _ = @import("card_locations.zig");
     _ = @import("board.zig");
     _ = @import("point.zig");
     _ = @import("stack.zig");

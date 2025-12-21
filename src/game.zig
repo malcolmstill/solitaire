@@ -69,7 +69,7 @@ pub const Game = struct {
 
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
-                try card_locations.set_location(Card.of(rank, suit), STOCK_LOCUS);
+                try card_locations.setLocation(Card.of(rank, suit), STOCK_LOCUS);
             }
         }
 
@@ -127,7 +127,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_1.push(card, .facedown);
         }
@@ -137,7 +137,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_2.push(card, .facedown);
         }
@@ -147,7 +147,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_3.push(card, .facedown);
         }
@@ -157,7 +157,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_4.push(card, .facedown);
         }
@@ -167,7 +167,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_5.push(card, .facedown);
         }
@@ -177,7 +177,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_6.push(card, .facedown);
         }
@@ -187,7 +187,7 @@ pub const Game = struct {
 
             const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
 
-            try card_locations.set_location(card, locus);
+            try card_locations.setLocation(card, locus);
 
             board.row_7.push(card, .facedown);
         }
@@ -356,7 +356,7 @@ pub const Game = struct {
                 const stack_locus = game.stack_locus.waste;
 
                 const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-                try game.card_locations.set_location(entry.card, locus);
+                try game.card_locations.setLocation(entry.card, locus);
             } else {
                 while (game.board.waste.popOrNull()) |entry| {
                     game.board.stock.push(entry.card, .facedown);
@@ -364,7 +364,7 @@ pub const Game = struct {
                     const stack_locus = game.stack_locus.stock;
 
                     const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-                    try game.card_locations.set_location(entry.card, locus);
+                    try game.card_locations.setLocation(entry.card, locus);
                 }
             }
 
@@ -422,7 +422,7 @@ pub const Game = struct {
                         var locus = dst.locus;
                         locus.y = locus.y + offset * @as(f32, @floatFromInt(i)) - empty;
 
-                        try game.card_locations.start_animation(entry.card, locus);
+                        try game.card_locations.startAnimation(entry.card, locus);
                     }
 
                     game.state.cards_in_hand = null;
@@ -446,7 +446,7 @@ pub const Game = struct {
                 defer i += 1;
                 var locus = cards_in_hand.initial_card_locus;
                 locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
-                try game.card_locations.start_animation(entry.card, locus);
+                try game.card_locations.startAnimation(entry.card, locus);
             }
 
             game.state.cards_in_hand = null;
@@ -564,7 +564,7 @@ pub const Game = struct {
             const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
             for (cards_in_hand.stack.slice(), 0..) |entry, i| {
-                try game.card_locations.set_location(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
+                try game.card_locations.setLocation(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
             }
         }
     }
