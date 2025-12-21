@@ -32,15 +32,35 @@ pub fn prerenderCard(card: Card, red_corner: r.Texture, black_corner: r.Texture)
 
     // Draw outline
     {
-        const rect: r.Rectangle = .{ .x = 0.0, .y = 0.0, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
-        const outLineColor: r.Color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+        const rect: r.Rectangle = .{
+            .x = 0.0,
+            .y = 0.0,
+            .width = CARD_STROKE_WIDTH,
+            .height = CARD_STROKE_HEIGHT,
+        };
+        const outLineColor: r.Color = .{
+            .a = 255,
+            .r = 0,
+            .g = 0,
+            .b = 0,
+        };
         r.DrawRectangleRounded(rect, roundness, segments, outLineColor);
     }
 
     // Draw body
     {
-        const rect: r.Rectangle = .{ .x = CARD_STROKE, .y = CARD_STROKE, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-        const bodyColor: r.Color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+        const rect: r.Rectangle = .{
+            .x = CARD_STROKE,
+            .y = CARD_STROKE,
+            .width = CARD_WIDTH,
+            .height = CARD_HEIGHT,
+        };
+        const bodyColor: r.Color = .{
+            .a = 255,
+            .r = 255,
+            .g = 255,
+            .b = 255,
+        };
         r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
     }
 
@@ -62,21 +82,51 @@ pub fn prerenderFacedownCard() r.RenderTexture2D {
     r.ClearBackground(r.Color{ .a = 0.0, .r = 0.0, .b = 0.0, .g = 0.0 });
 
     {
-        const rect: r.Rectangle = .{ .x = 0.0, .y = 0.0, .width = CARD_STROKE_WIDTH, .height = CARD_STROKE_HEIGHT };
-        const outLineColor: r.Color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+        const rect: r.Rectangle = .{
+            .x = 0.0,
+            .y = 0.0,
+            .width = CARD_STROKE_WIDTH,
+            .height = CARD_STROKE_HEIGHT,
+        };
+        const outLineColor: r.Color = .{
+            .a = 255,
+            .r = 0,
+            .g = 0,
+            .b = 0,
+        };
         r.DrawRectangleRounded(rect, roundness, segments, outLineColor);
     }
 
     // Draw body
     {
-        const rect: r.Rectangle = .{ .x = CARD_STROKE, .y = CARD_STROKE, .width = CARD_WIDTH, .height = CARD_HEIGHT };
-        const bodyColor: r.Color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+        const rect: r.Rectangle = .{
+            .x = CARD_STROKE,
+            .y = CARD_STROKE,
+            .width = CARD_WIDTH,
+            .height = CARD_HEIGHT,
+        };
+        const bodyColor: r.Color = .{
+            .a = 255,
+            .r = 255,
+            .g = 255,
+            .b = 255,
+        };
         r.DrawRectangleRounded(rect, roundness, segments, bodyColor);
     }
 
     {
-        const backRect: r.Rectangle = .{ .x = CARD_STROKE + CARD_BACK_GUTTER, .y = CARD_STROKE + CARD_BACK_GUTTER, .width = CARD_BACK_WIDTH, .height = CARD_BACK_HEIGHT };
-        const backColor: r.Color = .{ .a = 255, .r = 225, .g = 95, .b = 95 };
+        const backRect: r.Rectangle = .{
+            .x = CARD_STROKE + CARD_BACK_GUTTER,
+            .y = CARD_STROKE + CARD_BACK_GUTTER,
+            .width = CARD_BACK_WIDTH,
+            .height = CARD_BACK_HEIGHT,
+        };
+        const backColor: r.Color = .{
+            .a = 255,
+            .r = 225,
+            .g = 95,
+            .b = 95,
+        };
         r.DrawRectangleRounded(backRect, 0.15, segments, backColor);
     }
 
@@ -114,10 +164,30 @@ fn prerenderDrawCornerRank(card: Card, red_corner: r.Texture, black_corner: r.Te
         .height = sprite_width,
     };
 
-    const top_left: r.Rectangle = .{ .x = CARD_STROKE, .y = CARD_STROKE + 2.0, .width = 12.0, .height = 12.0 };
-    const top_right: r.Rectangle = .{ .x = CARD_STROKE + CARD_WIDTH - 13.0, .y = CARD_STROKE + 2.0, .width = 12.0, .height = 12.0 };
-    const bottom_left: r.Rectangle = .{ .x = CARD_STROKE + 13.0, .y = CARD_STROKE + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
-    const bottom_right: r.Rectangle = .{ .x = CARD_STROKE + CARD_WIDTH, .y = CARD_STROKE + CARD_HEIGHT - 2.0, .width = 12.0, .height = 12.0 };
+    const top_left: r.Rectangle = .{
+        .x = CARD_STROKE,
+        .y = CARD_STROKE + 2.0,
+        .width = 12.0,
+        .height = 12.0,
+    };
+    const top_right: r.Rectangle = .{
+        .x = CARD_STROKE + CARD_WIDTH - 13.0,
+        .y = CARD_STROKE + 2.0,
+        .width = 12.0,
+        .height = 12.0,
+    };
+    const bottom_left: r.Rectangle = .{
+        .x = CARD_STROKE + 13.0,
+        .y = CARD_STROKE + CARD_HEIGHT - 2.0,
+        .width = 12.0,
+        .height = 12.0,
+    };
+    const bottom_right: r.Rectangle = .{
+        .x = CARD_STROKE + CARD_WIDTH,
+        .y = CARD_STROKE + CARD_HEIGHT - 2.0,
+        .width = 12.0,
+        .height = 12.0,
+    };
 
     r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
     r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
@@ -145,10 +215,30 @@ fn prerenderDrawCornerSuit(card: Card, red_corner: r.Texture, black_corner: r.Te
         .height = sprite_width,
     };
 
-    const top_left: r.Rectangle = .{ .x = CARD_STROKE, .y = CARD_STROKE + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
-    const top_right: r.Rectangle = .{ .x = CARD_STROKE + CARD_WIDTH - sprite_width - 1.0, .y = CARD_STROKE + sprite_width + 2.0, .width = sprite_width, .height = sprite_width };
-    const bottom_left: r.Rectangle = .{ .x = CARD_STROKE + sprite_width + 1.0, .y = CARD_STROKE + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
-    const bottom_right: r.Rectangle = .{ .x = CARD_STROKE + CARD_WIDTH, .y = CARD_STROKE + CARD_HEIGHT - sprite_width - 2.0, .width = sprite_width, .height = sprite_width };
+    const top_left: r.Rectangle = .{
+        .x = CARD_STROKE,
+        .y = CARD_STROKE + sprite_width + 2.0,
+        .width = sprite_width,
+        .height = sprite_width,
+    };
+    const top_right: r.Rectangle = .{
+        .x = CARD_STROKE + CARD_WIDTH - sprite_width - 1.0,
+        .y = CARD_STROKE + sprite_width + 2.0,
+        .width = sprite_width,
+        .height = sprite_width,
+    };
+    const bottom_left: r.Rectangle = .{
+        .x = CARD_STROKE + sprite_width + 1.0,
+        .y = CARD_STROKE + CARD_HEIGHT - sprite_width - 2.0,
+        .width = sprite_width,
+        .height = sprite_width,
+    };
+    const bottom_right: r.Rectangle = .{
+        .x = CARD_STROKE + CARD_WIDTH,
+        .y = CARD_STROKE + CARD_HEIGHT - sprite_width - 2.0,
+        .width = sprite_width,
+        .height = sprite_width,
+    };
 
     r.DrawTexturePro(tex, src, top_left, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);
     r.DrawTexturePro(tex, src, top_right, .{ .x = 0.0, .y = 0.0 }, 0.0, r.WHITE);

@@ -125,7 +125,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_1_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
@@ -135,7 +138,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_2_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
@@ -145,7 +151,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_3_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
@@ -155,7 +164,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_4_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
@@ -165,7 +177,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_5_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
@@ -175,7 +190,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_6_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
@@ -185,7 +203,10 @@ pub const Game = struct {
             const card = board.stock.pop().card;
             const stack_locus = ROW_7_LOCUS;
 
-            const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) };
+            const locus: Point = .{
+                .x = stack_locus.x,
+                .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+            };
 
             try card_locations.setLocation(card, locus);
 
