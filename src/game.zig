@@ -38,7 +38,7 @@ pub const Game = struct {
     board: Board,
     history: std.ArrayList(Board),
     state: GameState,
-    card_locations: CardLocations,
+    locations: CardLocations,
     renderer: Renderer,
     stack_locus: struct {
         stock: Point = STOCK_LOCUS,
@@ -59,25 +59,25 @@ pub const Game = struct {
     pub fn init(allocator: std.mem.Allocator, seed: u64, sloppy: bool, debug: bool) !Game {
         std.debug.print("Initialising game with seed {}\n", .{seed});
 
-        var card_locations = CardLocations.init(allocator, sloppy);
+        var locations = CardLocations.init(allocator, sloppy);
 
-        const renderer = try Renderer.init(allocator, &card_locations);
+        const renderer = try Renderer.init(allocator, &locations);
 
         return .{
             .debug = debug,
             .sloppy = sloppy,
-            .board = try Game.deal(seed, &card_locations),
+            .board = try Game.deal(seed, &locations),
             .renderer = renderer,
             .history = std.ArrayList(Board){},
             .state = .{},
-            .card_locations = card_locations,
+            .locations = locations,
             .stack_locus = .{},
         };
     }
 
     pub fn deinit(game: *Game, allocator: std.mem.Allocator) void {
         game.history.deinit(allocator);
-        game.card_locations.deinit();
+        game.locations.deinit();
     }
 
     fn deal(seed: u64, card_locations: *CardLocations) !Board {
@@ -258,7 +258,7 @@ pub const Game = struct {
     }
 
     pub fn drawCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
-        const position = game.card_locations.update(card, dt);
+        const position = game.locations.update(card, dt);
 
         game.renderer.renderCard(card, position, direction);
     }
@@ -276,7 +276,7 @@ pub const Game = struct {
                 const stack_locus = game.stack_locus.waste;
 
                 const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-                try game.card_locations.setLocation(entry.card, locus);
+                try game.locations.setLocation(entry.card, locus);
             } else {
                 while (game.board.waste.popOrNull()) |entry| {
                     game.board.stock.push(entry.card, .facedown);
@@ -284,7 +284,7 @@ pub const Game = struct {
                     const stack_locus = game.stack_locus.stock;
 
                     const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
-                    try game.card_locations.setLocation(entry.card, locus);
+                    try game.locations.setLocation(entry.card, locus);
                 }
             }
 
@@ -298,7 +298,7 @@ pub const Game = struct {
 
         // Otherwise try and pick up one or more face up cards
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
-            const locus = game.card_locations.get(card_source.stack.array[0].card).current();
+            const locus = game.locations.get(card_source.stack.array[0].card).current();
 
             game.state.cards_in_hand = .{
                 .stack = card_source.stack,
@@ -342,7 +342,7 @@ pub const Game = struct {
                         var locus = dst.locus;
                         locus.y = locus.y + offset * @as(f32, @floatFromInt(i)) - empty;
 
-                        try game.card_locations.startAnimation(entry.card, locus);
+                        try game.locations.startAnimation(entry.card, locus);
                     }
 
                     game.state.cards_in_hand = null;
@@ -366,7 +366,7 @@ pub const Game = struct {
                 defer i += 1;
                 var locus = cards_in_hand.initial_card_locus;
                 locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
-                try game.card_locations.startAnimation(entry.card, locus);
+                try game.locations.startAnimation(entry.card, locus);
             }
 
             game.state.cards_in_hand = null;
@@ -401,7 +401,7 @@ pub const Game = struct {
             const stack: Stack(24) = @field(game.board, @tagName(dst));
 
             // Use centre of card to decide if enough card is covering destination
-            const card_locus = game.card_locations.get(in_hand.stack.array[0].card).current();
+            const card_locus = game.locations.get(in_hand.stack.array[0].card).current();
             const pointer: Point = .{
                 .x = card_locus.x + CARD_WIDTH / 2,
                 .y = card_locus.y + CARD_HEIGHT / 2,
@@ -409,7 +409,7 @@ pub const Game = struct {
 
             const count = stack.size();
 
-            const locus: Point = if (stack.peek()) |top| game.card_locations.get(top.card).current() else stack_locus;
+            const locus: Point = if (stack.peek()) |top| game.locations.get(top.card).current() else stack_locus;
 
             if (pointer.x > locus.x and pointer.x < locus.x + CARD_WIDTH) {
                 if (pointer.y > locus.y and pointer.y < locus.y + CARD_HEIGHT) {
@@ -429,7 +429,7 @@ pub const Game = struct {
             var it = @field(game.board, @tagName(src)).iterator();
 
             if (it.next()) |entry| {
-                const locus = game.card_locations.get(entry.card).current();
+                const locus = game.locations.get(entry.card).current();
 
                 if (entry.direction == .facedown) {
                     if (x > locus.x and x < locus.x + CARD_WIDTH) {
@@ -456,7 +456,7 @@ pub const Game = struct {
             var i: u8 = 0;
             while (it.next()) |entry| {
                 defer i += 1;
-                const locus = game.card_locations.get(entry.card).current();
+                const locus = game.locations.get(entry.card).current();
 
                 if (entry.direction == .faceup) {
                     if (x > locus.x and x < locus.x + CARD_WIDTH) {
@@ -484,7 +484,7 @@ pub const Game = struct {
             const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
             for (cards_in_hand.stack.slice(), 0..) |entry, i| {
-                try game.card_locations.setLocation(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
+                try game.locations.setLocation(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
             }
         }
     }
