@@ -8,10 +8,6 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    r.InitWindow(600, 400, "");
-    r.SetTargetFPS(60);
-    defer r.CloseWindow();
-
     var debug = false;
     var sloppy = false;
     var seed = std.crypto.random.int(u64);
@@ -38,6 +34,10 @@ pub fn main() !void {
     if (expect_next_seed) {
         @panic("Expected integer seed");
     }
+
+    r.InitWindow(600, 400, "");
+    r.SetTargetFPS(60);
+    defer r.CloseWindow();
 
     var game = try Game.init(allocator, seed, sloppy, debug);
     defer game.deinit(allocator);
@@ -97,7 +97,7 @@ pub fn main() !void {
 
         game.assert_consistent();
 
-        game.render(r.GetFrameTime());
+        game.draw(r.GetFrameTime());
     }
 }
 
