@@ -28,7 +28,7 @@ pub const Renderer = struct {
 
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
-                try locations.setLocation(Card.of(rank, suit), STOCK_LOCUS);
+                try locations.set(Card.of(rank, suit), STOCK_LOCUS);
             }
         }
 

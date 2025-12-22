@@ -34,7 +34,7 @@ pub const CardLocations = struct {
     /// Set card position (immediately) to a fixed position.
     ///
     /// If it was animating this will stop the animation
-    pub fn setLocation(card_locations: *CardLocations, card: Card, locus: Point) !void {
+    pub fn set(card_locations: *CardLocations, card: Card, locus: Point) !void {
         try card_locations.map.put(card, Position.fromPoint(locus));
     }
 
