@@ -1,5 +1,3 @@
-// const r = @cImport(@cInclude("raylib.h"));
-
 const std = @import("std");
 const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
@@ -8,12 +6,13 @@ const Point = @import("point.zig").Point;
 const Position = @import("card_locations.zig").Position;
 const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
-const prerenderCard = @import("prerender.zig").prerenderCard;
-const prerenderFacedownCard = @import("prerender.zig").prerenderFacedownCard;
-const CARD_WIDTH = @import("prerender.zig").CARD_WIDTH;
-const CARD_HEIGHT = @import("prerender.zig").CARD_HEIGHT;
-const CARD_STROKE = @import("prerender.zig").CARD_STROKE;
-const ray = @import("prerender.zig").r;
+const CARD_WIDTH = @import("geom.zig").CARD_WIDTH;
+const CARD_HEIGHT = @import("geom.zig").CARD_HEIGHT;
+const CARD_STROKE = @import("geom.zig").CARD_STROKE;
+const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
+const Renderer = @import("render.zig").Renderer;
+const renderDebug = @import("render.zig").renderDebug;
+const renderEmpty = @import("render.zig").renderEmpty;
 
 // We need some sort of game state that at a minimum tells
 // us if we have a card in hand.
@@ -39,12 +38,8 @@ pub const Game = struct {
     board: Board,
     history: std.ArrayList(Board),
     state: GameState,
-    textures: std.AutoHashMap(Card, ray.RenderTexture2D),
-    texture_facedown: ray.RenderTexture2D,
     card_locations: CardLocations,
-    tex: ray.struct_Texture,
-    red_corner: ray.struct_Texture,
-    black_corner: ray.struct_Texture,
+    renderer: Renderer,
     stack_locus: struct {
         stock: Point = STOCK_LOCUS,
         waste: Point = WASTE_LOCUS,
@@ -66,41 +61,16 @@ pub const Game = struct {
 
         var card_locations = CardLocations.init(allocator, sloppy);
 
-        const tex = ray.LoadTexture("src/ace_club.png");
-
-        const red_corner = ray.LoadTexture("src/red.png");
-        const black_corner = ray.LoadTexture("src/black.png");
-
-        for (std.meta.tags(Card.Suit)) |suit| {
-            for (std.meta.tags(Card.Rank)) |rank| {
-                try card_locations.setLocation(Card.of(rank, suit), STOCK_LOCUS);
-            }
-        }
-
-        var textures = std.AutoHashMap(Card, ray.RenderTexture2D).init(allocator);
-        for (std.meta.tags(Card.Suit)) |suit| {
-            for (std.meta.tags(Card.Rank)) |rank| {
-                const card = Card.of(rank, suit);
-                const texture = prerenderCard(card, red_corner, black_corner);
-
-                try textures.put(card, texture);
-            }
-        }
-
-        const texture_facedown = prerenderFacedownCard();
+        const renderer = try Renderer.init(allocator, &card_locations);
 
         return .{
             .debug = debug,
             .sloppy = sloppy,
             .board = try Game.deal(seed, &card_locations),
+            .renderer = renderer,
             .history = std.ArrayList(Board){},
             .state = .{},
             .card_locations = card_locations,
-            .textures = textures,
-            .texture_facedown = texture_facedown,
-            .tex = tex,
-            .red_corner = red_corner,
-            .black_corner = black_corner,
             .stack_locus = .{},
         };
     }
@@ -237,58 +207,30 @@ pub const Game = struct {
         game.board = board;
     }
 
-    pub fn render(game: *Game, dt: f32) void {
-        game.renderStack("stock", dt);
-        game.renderStack("waste", dt);
+    pub fn draw(game: *Game, dt: f32) void {
+        game.drawStack("stock", dt);
+        game.drawStack("waste", dt);
 
         // Rows
-        game.renderStack("row_1", dt);
-        game.renderStack("row_2", dt);
-        game.renderStack("row_3", dt);
-        game.renderStack("row_4", dt);
-        game.renderStack("row_5", dt);
-        game.renderStack("row_6", dt);
-        game.renderStack("row_7", dt);
+        game.drawStack("row_1", dt);
+        game.drawStack("row_2", dt);
+        game.drawStack("row_3", dt);
+        game.drawStack("row_4", dt);
+        game.drawStack("row_5", dt);
+        game.drawStack("row_6", dt);
+        game.drawStack("row_7", dt);
 
         // Suit piles
-        game.renderStack("spades", dt);
-        game.renderStack("hearts", dt);
-        game.renderStack("diamonds", dt);
-        game.renderStack("clubs", dt);
+        game.drawStack("spades", dt);
+        game.drawStack("hearts", dt);
+        game.drawStack("diamonds", dt);
+        game.drawStack("clubs", dt);
 
         // Debug draw dest
         if (game.debug) {
             if (game.state.cards_in_hand) |in_hand| {
                 if (game.findDropDest()) |dst| {
-                    const stack_locus = dst.locus;
-                    const offset = 0;
-
-                    const emptyRect: ray.Rectangle = .{
-                        .x = stack_locus.x + offset,
-                        .y = stack_locus.y + offset,
-                        .width = CARD_WIDTH,
-                        .height = CARD_HEIGHT,
-                    };
-
-                    const emptyColour: ray.Color = if (game.board.isMoveValid(in_hand.stack, dst.dest))
-                        .{
-                            .a = 50,
-                            .r = 0,
-                            .g = 176,
-                            .b = 0,
-                        }
-                    else
-                        .{
-                            .a = 70,
-                            .r = 176,
-                            .g = 176,
-                            .b = 0,
-                        };
-
-                    const roundness = 0.25;
-                    const segments = 20;
-
-                    ray.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
+                    renderDebug(dst.locus, game.board.isMoveValid(in_hand.stack, dst.dest));
                 }
             }
         }
@@ -296,76 +238,29 @@ pub const Game = struct {
         if (game.state.cards_in_hand) |*cards_in_hand| {
             // card_in_hand.card.draw();
             for (cards_in_hand.stack.slice()) |entry| {
-                game.renderCard(entry.card, entry.direction, dt);
+                game.drawCard(entry.card, entry.direction, dt);
             }
         }
     }
 
-    fn renderStack(game: *Game, comptime stack: []const u8, dt: f32) void {
+    fn drawStack(game: *Game, comptime stack: []const u8, dt: f32) void {
         //
         const slice = @field(game.board, stack).slice();
         const stack_locus = @field(game.stack_locus, stack);
 
         // Draw "empty" pile
-        {
-            const offset = 0;
-
-            const emptyRect: ray.Rectangle = .{
-                .x = stack_locus.x + offset,
-                .y = stack_locus.y + offset,
-                .width = CARD_WIDTH,
-                .height = CARD_HEIGHT,
-            };
-
-            const emptyColour: ray.Color = .{
-                .a = 50,
-                .r = 76,
-                .g = 76,
-                .b = 76,
-            };
-
-            const roundness = 0.25;
-            const segments = 20;
-
-            ray.DrawRectangleRounded(emptyRect, roundness, segments, emptyColour);
-        }
+        renderEmpty(stack_locus);
 
         // Draw the cards
         for (slice) |entry| {
-            game.renderCard(entry.card, entry.direction, dt);
+            game.drawCard(entry.card, entry.direction, dt);
         }
     }
 
-    pub fn renderCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
+    pub fn drawCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
         const position = game.card_locations.update(card, dt);
-        const locus = position.locus;
 
-        const target: ray.RenderTexture2D = switch (direction) {
-            .faceup => game.textures.get(card) orelse unreachable,
-            .facedown => game.texture_facedown,
-        };
-
-        ray.DrawTexturePro(
-            target.texture,
-            ray.Rectangle{
-                .x = 0,
-                .y = 0,
-                .width = @floatFromInt(target.texture.width),
-                .height = @floatFromInt(-target.texture.height),
-            },
-            ray.Rectangle{
-                .x = locus.x - CARD_STROKE + @as(f32, @floatFromInt(target.texture.width)) / 2.0,
-                .y = locus.y - CARD_STROKE + @as(f32, @floatFromInt(target.texture.height)) / 2.0,
-                .width = @floatFromInt(target.texture.width),
-                .height = @floatFromInt(target.texture.height),
-            },
-            ray.Vector2{
-                .x = @as(f32, @floatFromInt(target.texture.width)) / 2.0,
-                .y = @as(f32, @floatFromInt(target.texture.height)) / 2.0,
-            },
-            position.angle,
-            ray.WHITE,
-        );
+        game.renderer.renderCard(card, position, direction);
     }
 
     pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) !void {
@@ -606,7 +501,6 @@ pub const Game = struct {
     }
 };
 
-pub const STOCK_LOCUS: Point = .{ .x = 20, .y = 20 };
 pub const WASTE_LOCUS: Point = .{ .x = 90, .y = 20 };
 
 const ROW_Y = 120;
