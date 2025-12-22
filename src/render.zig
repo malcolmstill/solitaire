@@ -110,12 +110,8 @@ pub fn prerenderCard(card: Card, red_corner: ray.Texture, black_corner: ray.Text
             .width = CARD_STROKE_WIDTH,
             .height = CARD_STROKE_HEIGHT,
         };
-        const outLineColor: ray.Color = .{
-            .a = 255,
-            .r = 0,
-            .g = 0,
-            .b = 0,
-        };
+        const outLineColor: ray.Color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+
         ray.DrawRectangleRounded(rect, roundness, segments, outLineColor);
     }
 
@@ -127,12 +123,8 @@ pub fn prerenderCard(card: Card, red_corner: ray.Texture, black_corner: ray.Text
             .width = CARD_WIDTH,
             .height = CARD_HEIGHT,
         };
-        const bodyColor: ray.Color = .{
-            .a = 255,
-            .r = 255,
-            .g = 255,
-            .b = 255,
-        };
+        const bodyColor: ray.Color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+
         ray.DrawRectangleRounded(rect, roundness, segments, bodyColor);
     }
 
@@ -160,12 +152,8 @@ pub fn prerenderFacedownCard() ray.RenderTexture2D {
             .width = CARD_STROKE_WIDTH,
             .height = CARD_STROKE_HEIGHT,
         };
-        const outLineColor: ray.Color = .{
-            .a = 255,
-            .r = 0,
-            .g = 0,
-            .b = 0,
-        };
+        const outLineColor: ray.Color = .{ .a = 255, .r = 0, .g = 0, .b = 0 };
+
         ray.DrawRectangleRounded(rect, roundness, segments, outLineColor);
     }
 
@@ -177,12 +165,8 @@ pub fn prerenderFacedownCard() ray.RenderTexture2D {
             .width = CARD_WIDTH,
             .height = CARD_HEIGHT,
         };
-        const bodyColor: ray.Color = .{
-            .a = 255,
-            .r = 255,
-            .g = 255,
-            .b = 255,
-        };
+        const bodyColor: ray.Color = .{ .a = 255, .r = 255, .g = 255, .b = 255 };
+
         ray.DrawRectangleRounded(rect, roundness, segments, bodyColor);
     }
 
@@ -193,12 +177,8 @@ pub fn prerenderFacedownCard() ray.RenderTexture2D {
             .width = CARD_BACK_WIDTH,
             .height = CARD_BACK_HEIGHT,
         };
-        const backColor: ray.Color = .{
-            .a = 255,
-            .r = 225,
-            .g = 95,
-            .b = 95,
-        };
+        const backColor: ray.Color = .{ .a = 255, .r = 225, .g = 95, .b = 95 };
+
         ray.DrawRectangleRounded(backRect, 0.15, segments, backColor);
     }
 
