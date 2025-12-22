@@ -23,8 +23,8 @@ pub const Renderer = struct {
     texture_facedown: ray.RenderTexture2D,
 
     pub fn init(allocator: std.mem.Allocator, locations: *CardLocations) !Renderer {
-        const red_corner = ray.LoadTexture("src/red.png");
-        const black_corner = ray.LoadTexture("src/black.png");
+        const red_corner = loadPng("red.png");
+        const black_corner = loadPng("black.png");
 
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
@@ -83,6 +83,13 @@ pub const Renderer = struct {
         );
     }
 };
+
+fn loadPng(comptime path: []const u8) ray.Texture {
+    const data = @embedFile(path);
+    const image = ray.LoadImageFromMemory(".png", data, data.len);
+
+    return ray.LoadTextureFromImage(image);
+}
 
 pub fn prerenderCard(card: Card, red_corner: ray.Texture, black_corner: ray.Texture) ray.RenderTexture2D {
     const target: ray.RenderTexture2D = ray.LoadRenderTexture(CARD_STROKE_WIDTH, CARD_STROKE_HEIGHT);
