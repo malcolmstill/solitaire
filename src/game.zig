@@ -61,7 +61,7 @@ pub const Game = struct {
 
         var locations = CardLocations.init(allocator, sloppy);
 
-        const renderer = try Renderer.init(allocator, &locations);
+        const renderer = try Renderer.init(&locations);
 
         return .{
             .debug = debug,
