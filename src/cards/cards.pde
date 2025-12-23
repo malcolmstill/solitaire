@@ -10,6 +10,7 @@ int WIDTH_WITH_STROKE = WIDTH + 1;
 int HEIGHT_WITH_STROKE = HEIGHT + 1;
 
 int BACK_PADDING = 8;
+int CARD_RADIUS = 11;
 
 void setup() {
   pixelDensity(1);
@@ -99,7 +100,7 @@ void draw() {
   
       pg.fill(255);
       pg.stroke(40);
-      pg.rect(0, 0, WIDTH, HEIGHT, 8);
+      pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
       
       setSuitColor(suit);
      
@@ -136,7 +137,7 @@ void draw() {
   // Draw card
   pg.fill(255);
   pg.stroke(40);
-  pg.rect(0, 0, WIDTH, HEIGHT, 8);
+  pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
   
   // Draw inlay
   pg.fill(225, 95, 95);
