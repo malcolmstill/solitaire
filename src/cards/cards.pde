@@ -16,7 +16,7 @@ void setup() {
   pixelDensity(1);
   size(806, 430, P2D);
   
-  pg = createGraphics(806, 430, JAVA2D);
+  pg = createGraphics(13 * WIDTH_WITH_STROKE, 5 * HEIGHT_WITH_STROKE, JAVA2D);
 
   printArray(PFont.list());
   gbs = createFont("Georgia-Bold", 12);
