@@ -16,11 +16,16 @@
 - [ ] Win detection
 - [ ] New game
 
+## Improvements
+
+- [x] Nice card artwork
+- [ ] Card click detection should take into account rotation
+
 ## Cool additions
 
 - [ ] Scoring
 - [ ] Three-card draw
-- [ ] Nice card artwork
+- [ ] Cool card artwork
 - [x] sloppy mode
 - [ ] Screen shake!
 - [ ] Messy mode
