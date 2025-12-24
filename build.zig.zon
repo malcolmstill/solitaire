@@ -28,6 +28,10 @@
             .url = "git+https://github.com/raysan5/raylib.git#8115b7e92202b2c43dc9852b3ac678e45bf3649b",
             .hash = "raylib-5.6.0-dev-whq8uIdHCQVPY7Dhpexuv6c6BzrW2sNmY2saUs-4QGpm",
         },
+        .sokol = .{
+            .url = "git+https://github.com/floooh/sokol-zig.git#fce014e268a47bcf7473f1ef2d026020e3a17360",
+            .hash = "sokol-0.1.0-pb1HK-xlNgA1VENc1Hma_6RwNBWC9uGyOi2qdvOnsUsH",
+        },
     },
     .paths = .{
         "build.zig",

@@ -1,7 +1,5 @@
 const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
-
-const CardVisual = @import("card.zig").CardVisual;
 const Game = @import("game.zig").Game;
 
 pub fn main() !void {
@@ -105,6 +103,7 @@ test {
     _ = @import("card.zig");
     _ = @import("card_locations.zig");
     _ = @import("board.zig");
+    _ = @import("maths.zig");
     _ = @import("point.zig");
     _ = @import("stack.zig");
 }
