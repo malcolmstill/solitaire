@@ -4,7 +4,6 @@ const std = @import("std");
 const Card = @import("card.zig").Card;
 const Point = @import("point.zig").Point;
 const RotatedPosition = @import("card_locations.zig").RotatedPosition;
-const CardLocations = @import("card_locations.zig").CardLocations;
 const Direction = @import("direction.zig").Direction;
 const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
 const CARD_STROKE = @import("geom.zig").CARD_STROKE;
@@ -19,14 +18,8 @@ const CARD_BACK_HEIGHT = @import("geom.zig").CARD_BACK_HEIGHT;
 pub const Renderer = struct {
     cards: ray.Texture,
 
-    pub fn init(locations: *CardLocations) !Renderer {
+    pub fn init() !Renderer {
         const cards = loadPng("cards.png");
-
-        for (std.meta.tags(Card.Suit)) |suit| {
-            for (std.meta.tags(Card.Rank)) |rank| {
-                try locations.set(Card.of(rank, suit), STOCK_LOCUS);
-            }
-        }
 
         return .{
             .cards = cards,

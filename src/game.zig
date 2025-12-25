@@ -61,7 +61,13 @@ pub const Game = struct {
 
         var locations = CardLocations.init(allocator, sloppy);
 
-        const renderer = try Renderer.init(&locations);
+        for (std.meta.tags(Card.Suit)) |suit| {
+            for (std.meta.tags(Card.Rank)) |rank| {
+                try locations.set(Card.of(rank, suit), STOCK_LOCUS);
+            }
+        }
+
+        const renderer = try Renderer.init();
 
         return .{
             .debug = debug,
