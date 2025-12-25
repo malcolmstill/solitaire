@@ -59,7 +59,7 @@ fn buildNativeSokol(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
         .target = target,
         .optimize = optimize,
     });
-    // const mod_sokol = dep_sokol.module("sokol");
+
     const dep_shdc = dep_sokol.builder.dependency("shdc", .{});
 
     const shdc_step = try sokol.shdc.createSourceFile(b, .{
@@ -83,7 +83,6 @@ fn buildNativeSokol(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "sokol", .module = dep_sokol.module("sokol") },
-                // .{ .name = "shader", .module = shader },
             },
         }),
     });

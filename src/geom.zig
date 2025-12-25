@@ -1,6 +1,6 @@
 const Point = @import("point.zig").Point;
 
-pub const STOCK_LOCUS: Point = .{ .x = 20, .y = 20 };
+pub const STOCK_LOCUS: Point = .{ .x = 20, .y = 20, .z = 0 };
 
 pub const CARD_WIDTH = 60.0;
 pub const CARD_HEIGHT = CARD_WIDTH * CARD_RATIO;

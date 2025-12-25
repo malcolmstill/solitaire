@@ -52,6 +52,7 @@ pub fn main() !void {
     sapp.run(.{
         .user_data = @ptrCast(&game),
         .init_cb = init,
+        .event_userdata_cb = event,
         .frame_userdata_cb = frame,
         .cleanup_cb = cleanup,
         .width = SCREEN_WIDTH,
@@ -142,8 +143,29 @@ export fn init() void {
     });
 }
 
+export fn event(ev: [*c]const sapp.Event, userdata: ?*anyopaque) void {
+    var game: *Game = @ptrCast(@alignCast(userdata orelse unreachable));
+
+    // FIXME: we are ignoring errors from handle*
+    //
+    // Let's make those functions not error...we should be preallocating
+    // enough data such that our try's, which are probably due to allocation,
+    // are not required.
+
+    if (ev.*.type == .MOUSE_DOWN) {
+        _ = game.handleButtonDown(ev.*.mouse_x, ev.*.mouse_y) catch {};
+    } else if (ev.*.type == .MOUSE_UP) {
+        _ = game.handleButtonUp() catch {};
+    } else if (ev.*.type == .MOUSE_MOVE) {
+        _ = game.handleMove(ev.*.mouse_x, ev.*.mouse_y) catch {};
+    }
+}
+
 export fn frame(userdata: ?*anyopaque) void {
     var game: *Game = @ptrCast(@alignCast(userdata orelse unreachable));
+
+    const dt: f32 = @floatCast(sapp.frameDuration());
+    game.update(dt);
 
     {
         sg.beginPass(.{
@@ -152,20 +174,23 @@ export fn frame(userdata: ?*anyopaque) void {
         });
         defer sg.endPass();
 
-        var instance_data: [N * 3]f32 = undefined;
+        const STRIDE = 3;
+
+        var instance_data: [N * STRIDE]f32 = undefined;
 
         var i: usize = 0;
         var it = game.locations.iterator();
         while (it.next()) |entry| {
             defer i += 1;
+
             const position = entry.value_ptr.currentWithRot();
 
-            instance_data[3 * i + 0] = position.locus.x;
-            instance_data[3 * i + 1] = position.locus.y;
-            instance_data[3 * i + 2] = 0.0;
+            instance_data[STRIDE * i + 0] = position.locus.x;
+            instance_data[STRIDE * i + 1] = position.locus.y;
+            instance_data[STRIDE * i + 2] = position.locus.z;
         }
 
-        const orth = Mat4x4.ortho(0, SCREEN_HEIGHT, 0, SCREEN_WIDTH, -100, 100);
+        const orth = Mat4x4.ortho(0, SCREEN_HEIGHT, 0, SCREEN_WIDTH, 1000, -1);
 
         sg.updateBuffer(state.bindings.vertex_buffers[1], sg.asRange(&instance_data));
 

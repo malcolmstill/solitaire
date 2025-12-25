@@ -3,6 +3,7 @@ const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 const Point = @import("point.zig").Point;
+const Vec2D = @import("point.zig").Vec2D;
 const Position = @import("card_locations.zig").Position;
 const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
@@ -23,8 +24,8 @@ const GameState = struct {
 const CardsInHand = struct {
     stack: Stack(24),
     source: Board.Source,
-    initial_card_locus: Point,
-    initial_mouse: Point,
+    initial_card_locus: Vec2D,
+    initial_mouse: Vec2D,
 };
 
 pub const Game = struct {
@@ -100,6 +101,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -113,6 +115,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -126,6 +129,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -139,6 +143,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -152,6 +157,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -165,6 +171,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -178,6 +185,7 @@ pub const Game = struct {
             const locus: Point = .{
                 .x = stack_locus.x,
                 .y = stack_locus.y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                .z = @floatFromInt(i),
             };
 
             try locations.set(card, locus);
@@ -212,24 +220,34 @@ pub const Game = struct {
         // If we have a card in hand our button was already done
         if (game.state.cards_in_hand) |_| return;
 
-        // If we click on the stock, deal from it
+        // If we click on the stock
         if (game.stockClicked(mouse_x, mouse_y)) {
             if (game.board.stock.size() > 0) {
+                // ...deal from it if there are some cards
                 const entry = game.board.stock.pop();
                 game.board.waste.push(entry.card, .faceup);
 
                 const stack_locus = game.stack_locus.waste;
 
-                const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+                const locus: Point = .{
+                    .x = stack_locus.x,
+                    .y = stack_locus.y,
+                    .z = @floatFromInt(game.board.waste.size()),
+                };
 
                 try game.locations.set(entry.card, locus);
             } else {
+                // ...else move cards from waste back to stock
                 while (game.board.waste.popOrNull()) |entry| {
                     game.board.stock.push(entry.card, .facedown);
 
                     const stack_locus = game.stack_locus.stock;
 
-                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+                    const locus: Point = .{
+                        .x = stack_locus.x,
+                        .y = stack_locus.y,
+                        .z = @floatFromInt(game.board.stock.size()),
+                    };
 
                     try game.locations.set(entry.card, locus);
                 }
@@ -243,6 +261,9 @@ pub const Game = struct {
             return;
         }
 
+        // FIXME: cards we've picked up need to be above all other cards
+        // and correctly ordered
+
         // Otherwise try and pick up one or more face up cards
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
             const locus = game.locations.get(card_source.stack.array[0].card).current();
@@ -250,8 +271,14 @@ pub const Game = struct {
             game.state.cards_in_hand = .{
                 .stack = card_source.stack,
                 .source = card_source.source,
-                .initial_card_locus = .{ .x = locus.x, .y = locus.y },
-                .initial_mouse = .{ .x = mouse_x, .y = mouse_y },
+                .initial_card_locus = .{
+                    .x = locus.x,
+                    .y = locus.y,
+                },
+                .initial_mouse = .{
+                    .x = mouse_x,
+                    .y = mouse_y,
+                },
             };
         }
     }
@@ -280,6 +307,9 @@ pub const Game = struct {
                     // the shift that we otherwise get from offset.
                     const empty = if (dst.count == 0) offset else 0.0;
 
+                    // FIXME: placed cards should be updated to be correctly
+                    // z-ordered
+
                     var it = in_hand_stack.forwardIterator();
                     var i: usize = 1;
                     while (it.next()) |entry| {
@@ -306,13 +336,17 @@ pub const Game = struct {
 
             game.board.returnCards(in_hand_stack, source);
 
+            // FIXME: when we put cards back they need to be correctly z-ordered
+
             // Put cards back in correct location
             var it = in_hand_stack.forwardIterator();
             var i: usize = 0;
             while (it.next()) |entry| {
                 defer i += 1;
-                var locus = cards_in_hand.initial_card_locus;
+
+                var locus = Point.fromVec2D(cards_in_hand.initial_card_locus);
                 locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
+
                 try game.locations.startAnimation(entry.card, locus);
             }
 
@@ -349,7 +383,7 @@ pub const Game = struct {
 
             // Use centre of card to decide if enough card is covering destination
             const card_locus = game.locations.get(in_hand.stack.array[0].card).current();
-            const pointer: Point = .{
+            const pointer: Vec2D = .{
                 .x = card_locus.x + CARD_WIDTH / 2,
                 .y = card_locus.y + CARD_HEIGHT / 2,
             };
@@ -430,8 +464,17 @@ pub const Game = struct {
             const new_x = cards_in_hand.initial_card_locus.x + mouse_x - cards_in_hand.initial_mouse.x;
             const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
+            // FIXME: ensure correct ordering.
+            // Note: maybe the below is totally fine as the pick up should set the z-values
+
             for (cards_in_hand.stack.slice(), 0..) |entry, i| {
-                try game.locations.set(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
+                const current = game.locations.get(entry.card);
+
+                try game.locations.set(entry.card, .{
+                    .x = new_x,
+                    .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                    .z = current.currentWithRot().locus.z,
+                });
             }
         }
     }
@@ -448,7 +491,7 @@ pub const Game = struct {
     }
 };
 
-pub const WASTE_LOCUS: Point = .{ .x = 90, .y = 20 };
+pub const WASTE_LOCUS: Point = .{ .x = 90, .y = 20, .z = 0 };
 
 const ROW_Y = 120;
 const HORIZONTAL_PADDING = 10;
@@ -457,17 +500,17 @@ fn stack_x(comptime i: f64) f64 {
     return 2 * HORIZONTAL_PADDING + i * (CARD_WIDTH + HORIZONTAL_PADDING);
 }
 
-pub const ROW_1_LOCUS: Point = .{ .x = stack_x(0), .y = ROW_Y };
-pub const ROW_2_LOCUS: Point = .{ .x = stack_x(1), .y = ROW_Y };
-pub const ROW_3_LOCUS: Point = .{ .x = stack_x(2), .y = ROW_Y };
-pub const ROW_4_LOCUS: Point = .{ .x = stack_x(3), .y = ROW_Y };
-pub const ROW_5_LOCUS: Point = .{ .x = stack_x(4), .y = ROW_Y };
-pub const ROW_6_LOCUS: Point = .{ .x = stack_x(5), .y = ROW_Y };
-pub const ROW_7_LOCUS: Point = .{ .x = stack_x(6), .y = ROW_Y };
+pub const ROW_1_LOCUS: Point = .{ .x = stack_x(0), .y = ROW_Y, .z = 0 };
+pub const ROW_2_LOCUS: Point = .{ .x = stack_x(1), .y = ROW_Y, .z = 0 };
+pub const ROW_3_LOCUS: Point = .{ .x = stack_x(2), .y = ROW_Y, .z = 0 };
+pub const ROW_4_LOCUS: Point = .{ .x = stack_x(3), .y = ROW_Y, .z = 0 };
+pub const ROW_5_LOCUS: Point = .{ .x = stack_x(4), .y = ROW_Y, .z = 0 };
+pub const ROW_6_LOCUS: Point = .{ .x = stack_x(5), .y = ROW_Y, .z = 0 };
+pub const ROW_7_LOCUS: Point = .{ .x = stack_x(6), .y = ROW_Y, .z = 0 };
 
-pub const SPADES_LOCUS: Point = .{ .x = stack_x(4), .y = 20 };
-pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20 };
-pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20 };
-pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20 };
+pub const SPADES_LOCUS: Point = .{ .x = stack_x(4), .y = 20, .z = 0 };
+pub const HEARTS_LOCUS: Point = .{ .x = stack_x(5), .y = 20, .z = 0 };
+pub const DIAMONDS_LOCUS: Point = .{ .x = stack_x(6), .y = 20, .z = 0 };
+pub const CLUBS_LOCUS: Point = .{ .x = stack_x(7), .y = 20, .z = 0 };
 
 pub const CARD_STACK_OFFSET = 16.0;

@@ -191,9 +191,9 @@ pub const RotatedPosition = struct {
     locus: Point,
     angle: f32,
 
-    pub fn translate(p: RotatedPosition, v: Point) RotatedPosition {
+    pub fn translate(p: RotatedPosition, v: Vec2D) RotatedPosition {
         return .{
-            .locus = p.locus.add(v),
+            .locus = p.locus.addVec2D(v),
             .angle = p.angle,
         };
     }
