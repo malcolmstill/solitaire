@@ -13,7 +13,7 @@ const CARD_STROKE_HEIGHT = @import("geom.zig").CARD_STROKE_HEIGHT;
 const SCREEN_WIDTH = @import("geom.zig").SCREEN_WIDTH;
 const SCREEN_HEIGHT = @import("geom.zig").SCREEN_HEIGHT;
 
-const N = 3;
+const N = 52;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -50,8 +50,9 @@ pub fn main() !void {
     defer game.deinit(allocator);
 
     sapp.run(.{
+        .user_data = @ptrCast(&game),
         .init_cb = init,
-        .frame_cb = frame,
+        .frame_userdata_cb = frame,
         .cleanup_cb = cleanup,
         .width = SCREEN_WIDTH,
         .height = SCREEN_HEIGHT,
@@ -141,7 +142,9 @@ export fn init() void {
     });
 }
 
-export fn frame() void {
+export fn frame(userdata: ?*anyopaque) void {
+    var game: *Game = @ptrCast(@alignCast(userdata orelse unreachable));
+
     {
         sg.beginPass(.{
             .action = state.pass_action,
@@ -149,14 +152,22 @@ export fn frame() void {
         });
         defer sg.endPass();
 
-        const instance_data = &[_]f32{
-            50.0, 50.0, 0.0, //
-            100.0, 100.0, -0.5, //
-            0.0, 150.0, 0.0, //
-        };
+        var instance_data: [N * 3]f32 = undefined;
+
+        var i: usize = 0;
+        var it = game.locations.iterator();
+        while (it.next()) |entry| {
+            defer i += 1;
+            const position = entry.value_ptr.currentWithRot();
+
+            instance_data[3 * i + 0] = position.locus.x;
+            instance_data[3 * i + 1] = position.locus.y;
+            instance_data[3 * i + 2] = 0.0;
+        }
+
         const orth = Mat4x4.ortho(SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, -100, 100);
 
-        sg.updateBuffer(state.bindings.vertex_buffers[1], sg.asRange(instance_data));
+        sg.updateBuffer(state.bindings.vertex_buffers[1], sg.asRange(&instance_data));
 
         sg.applyPipeline(state.pipeline);
         sg.applyBindings(state.bindings);
