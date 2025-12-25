@@ -8,11 +8,7 @@ const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
 const CARD_WIDTH = @import("geom.zig").CARD_WIDTH;
 const CARD_HEIGHT = @import("geom.zig").CARD_HEIGHT;
-const CARD_STROKE = @import("geom.zig").CARD_STROKE;
 const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
-const Renderer = @import("render.zig").Renderer;
-const renderDebug = @import("render.zig").renderDebug;
-const renderEmpty = @import("render.zig").renderEmpty;
 
 // We need some sort of game state that at a minimum tells
 // us if we have a card in hand.
@@ -39,7 +35,6 @@ pub const Game = struct {
     history: std.ArrayList(Board),
     state: GameState,
     locations: CardLocations,
-    renderer: Renderer,
     stack_locus: struct {
         stock: Point = STOCK_LOCUS,
         waste: Point = WASTE_LOCUS,
@@ -67,13 +62,10 @@ pub const Game = struct {
             }
         }
 
-        const renderer = try Renderer.init();
-
         return .{
             .debug = debug,
             .sloppy = sloppy,
             .board = try Game.deal(seed, &locations),
-            .renderer = renderer,
             .history = std.ArrayList(Board){},
             .state = .{},
             .locations = locations,
@@ -202,62 +194,6 @@ pub const Game = struct {
         board.row_7.flipTop();
 
         return board;
-    }
-
-    pub fn draw(game: *Game) void {
-        game.drawStack("stock");
-        game.drawStack("waste");
-
-        // Rows
-        game.drawStack("row_1");
-        game.drawStack("row_2");
-        game.drawStack("row_3");
-        game.drawStack("row_4");
-        game.drawStack("row_5");
-        game.drawStack("row_6");
-        game.drawStack("row_7");
-
-        // Suit piles
-        game.drawStack("spades");
-        game.drawStack("hearts");
-        game.drawStack("diamonds");
-        game.drawStack("clubs");
-
-        // Debug draw dest
-        if (game.debug) {
-            if (game.state.cards_in_hand) |in_hand| {
-                if (game.findDropDest()) |dst| {
-                    renderDebug(dst.locus, game.board.isMoveValid(in_hand.stack, dst.dest));
-                }
-            }
-        }
-
-        if (game.state.cards_in_hand) |*cards_in_hand| {
-            // card_in_hand.card.draw();
-            for (cards_in_hand.stack.slice()) |entry| {
-                game.drawCard(entry.card, entry.direction);
-            }
-        }
-    }
-
-    fn drawStack(game: *Game, comptime stack: []const u8) void {
-        //
-        const slice = @field(game.board, stack).slice();
-        const stack_locus = @field(game.stack_locus, stack);
-
-        // Draw "empty" pile
-        renderEmpty(stack_locus);
-
-        // Draw the cards
-        for (slice) |entry| {
-            game.drawCard(entry.card, entry.direction);
-        }
-    }
-
-    pub fn drawCard(game: *Game, card: Card, direction: Direction) void {
-        const position = game.locations.get(card).currentWithRot();
-
-        game.renderer.renderCard(card, position, direction);
     }
 
     /// Update the game state based upon dt

@@ -5,6 +5,7 @@ const Card = @import("card.zig").Card;
 const Point = @import("point.zig").Point;
 const RotatedPosition = @import("card_locations.zig").RotatedPosition;
 const Direction = @import("direction.zig").Direction;
+const Game = @import("game.zig").Game;
 const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
 const CARD_STROKE = @import("geom.zig").CARD_STROKE;
 const CARD_WIDTH = @import("geom.zig").CARD_WIDTH;
@@ -26,7 +27,63 @@ pub const Renderer = struct {
         };
     }
 
-    pub fn renderCard(renderer: *Renderer, card: Card, position: RotatedPosition, direction: Direction) void {
+    pub fn drawGame(renderer: *const Renderer, game: *Game) void {
+        renderer.drawStack(game, "stock");
+        renderer.drawStack(game, "waste");
+
+        // Rows
+        renderer.drawStack(game, "row_1");
+        renderer.drawStack(game, "row_2");
+        renderer.drawStack(game, "row_3");
+        renderer.drawStack(game, "row_4");
+        renderer.drawStack(game, "row_5");
+        renderer.drawStack(game, "row_6");
+        renderer.drawStack(game, "row_7");
+
+        // Suit piles
+        renderer.drawStack(game, "spades");
+        renderer.drawStack(game, "hearts");
+        renderer.drawStack(game, "diamonds");
+        renderer.drawStack(game, "clubs");
+
+        // Debug draw dest
+        if (game.debug) {
+            if (game.state.cards_in_hand) |in_hand| {
+                if (game.findDropDest()) |dst| {
+                    renderDebug(dst.locus, game.board.isMoveValid(in_hand.stack, dst.dest));
+                }
+            }
+        }
+
+        if (game.state.cards_in_hand) |*cards_in_hand| {
+            // card_in_hand.card.draw();
+            for (cards_in_hand.stack.slice()) |entry| {
+                renderer.drawCard(game, entry.card, entry.direction);
+            }
+        }
+    }
+
+    fn drawStack(renderer: *const Renderer, game: *Game, comptime stack: []const u8) void {
+        //
+        const slice = @field(game.board, stack).slice();
+        const stack_locus = @field(game.stack_locus, stack);
+
+        // Draw "empty" pile
+        renderEmpty(stack_locus);
+
+        // Draw the cards
+        for (slice) |entry| {
+            renderer.drawCard(game, entry.card, entry.direction);
+        }
+    }
+
+    fn drawCard(renderer: *const Renderer, game: *Game, card: Card, direction: Direction) void {
+        const position = game.locations.get(card).currentWithRot();
+
+        renderer.renderCard(card, position, direction);
+    }
+
+    pub fn renderCard(renderer: *const Renderer, card: Card, position: RotatedPosition, direction: Direction) void {
         const locus = position.locus;
 
         const target = renderer.cards;

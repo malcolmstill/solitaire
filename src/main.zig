@@ -1,6 +1,7 @@
 const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
 const Game = @import("game.zig").Game;
+const Renderer = @import("render.zig").Renderer;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -36,6 +37,8 @@ pub fn main() !void {
     r.InitWindow(600, 400, "");
     r.SetTargetFPS(60);
     defer r.CloseWindow();
+
+    const renderer = try Renderer.init();
 
     var game = try Game.init(allocator, seed, sloppy, debug);
     defer game.deinit(allocator);
@@ -99,7 +102,7 @@ pub fn main() !void {
 
         game.update(dt);
 
-        game.draw();
+        renderer.drawGame(&game);
     }
 }
 
