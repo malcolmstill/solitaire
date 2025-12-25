@@ -1,7 +1,7 @@
 const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
 const Game = @import("game.zig").Game;
-const Renderer = @import("render.zig").Renderer;
+const Renderer = @import("renderer_raylib.zig").Renderer;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
