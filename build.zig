@@ -14,7 +14,7 @@ pub fn build(b: *std.Build) !void {
 
     const exe_unit_tests = b.addTest(.{
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
+            .root_source_file = b.path("src/main_rayling.zig"), // FIXME: test.zig
             .target = target,
             .optimize = optimize,
         }),
@@ -33,7 +33,7 @@ fn buildNativeRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: 
     const exe = b.addExecutable(.{
         .name = "game",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
+            .root_source_file = b.path("src/main_raylib.zig"),
             .target = target,
             .optimize = optimize,
             .imports = &.{},
