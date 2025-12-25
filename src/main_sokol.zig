@@ -14,8 +14,8 @@ const CARD_STROKE_HEIGHT = @import("geom.zig").CARD_STROKE_HEIGHT;
 const N = 3;
 
 pub fn main() !void {
-    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    // const allocator = gpa.allocator();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
 
     var debug = false;
     var sloppy = false;
@@ -44,8 +44,8 @@ pub fn main() !void {
         @panic("Expected integer seed");
     }
 
-    // var game = try Game.init(allocator, seed, sloppy, debug);
-    // defer game.deinit(allocator);
+    var game = try Game.init(allocator, seed, sloppy, debug);
+    defer game.deinit(allocator);
 
     sapp.run(.{
         .init_cb = init,
