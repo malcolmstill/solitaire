@@ -198,33 +198,24 @@ pub const Game = struct {
         return board;
     }
 
-    pub fn update(game: *Game, card: Card, dest: Board.Destination) !void {
-        const old_board = game.board;
-        const board = old_board.move(card, dest);
-
-        try game.history.append(old_board);
-
-        game.board = board;
-    }
-
-    pub fn draw(game: *Game, dt: f32) void {
-        game.drawStack("stock", dt);
-        game.drawStack("waste", dt);
+    pub fn draw(game: *Game) void {
+        game.drawStack("stock");
+        game.drawStack("waste");
 
         // Rows
-        game.drawStack("row_1", dt);
-        game.drawStack("row_2", dt);
-        game.drawStack("row_3", dt);
-        game.drawStack("row_4", dt);
-        game.drawStack("row_5", dt);
-        game.drawStack("row_6", dt);
-        game.drawStack("row_7", dt);
+        game.drawStack("row_1");
+        game.drawStack("row_2");
+        game.drawStack("row_3");
+        game.drawStack("row_4");
+        game.drawStack("row_5");
+        game.drawStack("row_6");
+        game.drawStack("row_7");
 
         // Suit piles
-        game.drawStack("spades", dt);
-        game.drawStack("hearts", dt);
-        game.drawStack("diamonds", dt);
-        game.drawStack("clubs", dt);
+        game.drawStack("spades");
+        game.drawStack("hearts");
+        game.drawStack("diamonds");
+        game.drawStack("clubs");
 
         // Debug draw dest
         if (game.debug) {
@@ -238,12 +229,12 @@ pub const Game = struct {
         if (game.state.cards_in_hand) |*cards_in_hand| {
             // card_in_hand.card.draw();
             for (cards_in_hand.stack.slice()) |entry| {
-                game.drawCard(entry.card, entry.direction, dt);
+                game.drawCard(entry.card, entry.direction);
             }
         }
     }
 
-    fn drawStack(game: *Game, comptime stack: []const u8, dt: f32) void {
+    fn drawStack(game: *Game, comptime stack: []const u8) void {
         //
         const slice = @field(game.board, stack).slice();
         const stack_locus = @field(game.stack_locus, stack);
@@ -253,14 +244,26 @@ pub const Game = struct {
 
         // Draw the cards
         for (slice) |entry| {
-            game.drawCard(entry.card, entry.direction, dt);
+            game.drawCard(entry.card, entry.direction);
         }
     }
 
-    pub fn drawCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
-        const position = game.locations.update(card, dt);
+    pub fn drawCard(game: *Game, card: Card, direction: Direction) void {
+        const position = game.locations.get(card).currentWithRot();
 
         game.renderer.renderCard(card, position, direction);
+    }
+
+    /// Update the game state based upon dt
+    ///
+    /// At the moment this only updates card positions for animation
+    pub fn update(game: *Game, dt: f32) void {
+        var it = game.locations.iterator();
+
+        while (it.next()) |entry| {
+            const card = entry.key_ptr.*;
+            _ = game.locations.update(card, dt);
+        }
     }
 
     pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) !void {

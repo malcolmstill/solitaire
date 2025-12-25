@@ -95,7 +95,11 @@ pub fn main() !void {
 
         game.assert_consistent();
 
-        game.draw(r.GetFrameTime());
+        const dt = r.GetFrameTime();
+
+        game.update(dt);
+
+        game.draw();
     }
 }
 

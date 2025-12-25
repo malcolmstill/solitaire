@@ -26,6 +26,10 @@ pub const CardLocations = struct {
         return card_locations.map.get(card) orelse unreachable;
     }
 
+    pub fn iterator(locations: *CardLocations) std.AutoHashMap(Card, Position).Iterator {
+        return locations.map.iterator();
+    }
+
     // pub fn randomize(card_locations: *CardLocations, card: Card) void {
     //     const rot = std.crypto.random.float(f32) - 0.5;
 

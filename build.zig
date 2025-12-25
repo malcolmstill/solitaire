@@ -8,8 +8,8 @@ pub fn build(b: *std.Build) !void {
     if (target.result.cpu.arch.isWasm()) {
         unreachable;
     } else {
-        // try buildNativeRaylib(b, target, optimize);
-        try buildNativeSokol(b, target, optimize);
+        try buildNativeRaylib(b, target, optimize);
+        // try buildNativeSokol(b, target, optimize);
     }
 
     const exe_unit_tests = b.addTest(.{

@@ -127,7 +127,6 @@ export fn init() void {
             l.attrs[shd.ATTR_cards_instance_pos] = .{ .format = .FLOAT3, .buffer_index = 1 };
 
             l.buffers[1].step_func = sg.VertexStep.PER_INSTANCE;
-            l.buffers[1].stride = 0;
 
             break :init l;
         },
@@ -150,10 +149,10 @@ export fn frame() void {
 
         const instance_data = &[_]f32{
             50.0, 50.0, 0.0, //
-            250.0, 150.0, 0.0, //
+            100.0, 100.0, -0.5, //
             0.0, 150.0, 0.0, //
         };
-        const orth = Mat4x4.ortho(400, 0, 0, 600, -1, 1);
+        const orth = Mat4x4.ortho(400, 0, 0, 600, -100, 100);
 
         sg.updateBuffer(state.bindings.vertex_buffers[1], sg.asRange(instance_data));
 
