@@ -117,7 +117,7 @@ export fn init() void {
     // Pre-allocate instance data
     state.bindings.vertex_buffers[1] = sg.makeBuffer(.{
         .usage = .{ .stream_update = true },
-        .size = N * @sizeOf([3]f32), // FIXME: want at least 52 * @sizeOf(...)
+        .size = N * @sizeOf([3]f32),
     });
 
     state.pipeline = sg.makePipeline(.{
@@ -165,7 +165,7 @@ export fn frame(userdata: ?*anyopaque) void {
             instance_data[3 * i + 2] = 0.0;
         }
 
-        const orth = Mat4x4.ortho(SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, -100, 100);
+        const orth = Mat4x4.ortho(0, SCREEN_HEIGHT, 0, SCREEN_WIDTH, -100, 100);
 
         sg.updateBuffer(state.bindings.vertex_buffers[1], sg.asRange(&instance_data));
 
