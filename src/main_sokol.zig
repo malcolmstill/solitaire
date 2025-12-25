@@ -10,6 +10,8 @@ const Mat4x4 = @import("maths.zig").Mat4x4;
 
 const CARD_STROKE_WIDTH = @import("geom.zig").CARD_STROKE_WIDTH;
 const CARD_STROKE_HEIGHT = @import("geom.zig").CARD_STROKE_HEIGHT;
+const SCREEN_WIDTH = @import("geom.zig").SCREEN_WIDTH;
+const SCREEN_HEIGHT = @import("geom.zig").SCREEN_HEIGHT;
 
 const N = 3;
 
@@ -51,8 +53,8 @@ pub fn main() !void {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .width = 600,
-        .height = 400,
+        .width = SCREEN_WIDTH,
+        .height = SCREEN_HEIGHT,
         .icon = .{ .sokol_default = true },
         .window_title = "solitaire",
         .logger = .{ .func = slog.func },
@@ -152,7 +154,7 @@ export fn frame() void {
             100.0, 100.0, -0.5, //
             0.0, 150.0, 0.0, //
         };
-        const orth = Mat4x4.ortho(400, 0, 0, 600, -100, 100);
+        const orth = Mat4x4.ortho(SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, -100, 100);
 
         sg.updateBuffer(state.bindings.vertex_buffers[1], sg.asRange(instance_data));
 
