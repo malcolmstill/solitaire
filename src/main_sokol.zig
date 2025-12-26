@@ -309,7 +309,7 @@ export fn frame(userdata: ?*anyopaque) void {
             .x = SPADES_LOCUS.x,
             .y = SPADES_LOCUS.y,
             .angle = 0.0,
-            .u = 1,
+            .u = 2,
             .v = 4,
         };
 
@@ -317,7 +317,7 @@ export fn frame(userdata: ?*anyopaque) void {
             .x = HEARTS_LOCUS.x,
             .y = HEARTS_LOCUS.y,
             .angle = 0.0,
-            .u = 1,
+            .u = 3,
             .v = 4,
         };
 
@@ -325,7 +325,7 @@ export fn frame(userdata: ?*anyopaque) void {
             .x = DIAMONDS_LOCUS.x,
             .y = DIAMONDS_LOCUS.y,
             .angle = 0.0,
-            .u = 1,
+            .u = 4,
             .v = 4,
         };
 
@@ -333,7 +333,7 @@ export fn frame(userdata: ?*anyopaque) void {
             .x = CLUBS_LOCUS.x,
             .y = CLUBS_LOCUS.y,
             .angle = 0.0,
-            .u = 1,
+            .u = 5,
             .v = 4,
         };
 
