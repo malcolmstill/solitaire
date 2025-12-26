@@ -8,6 +8,7 @@ const sglue = sokol.glue;
 const shd = @import("cards.glsl.zig");
 const Mat4x4 = @import("maths.zig").Mat4x4;
 const zstbi = @import("zstbi");
+const Point = @import("point.zig").Point;
 const texcoordsU16 = @import("geom.zig").texcoordsU16;
 
 const CARD_STROKE_WIDTH = @import("geom.zig").CARD_STROKE_WIDTH;
@@ -233,109 +234,19 @@ export fn frame(userdata: ?*anyopaque) void {
 
         var instance_data: [NUM_EMPTY + NUM_CARDS]Vertex = undefined;
 
-        instance_data[0] = .{
-            .x = STOCK_LOCUS.x,
-            .y = STOCK_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[1] = .{
-            .x = ROW_1_LOCUS.x,
-            .y = ROW_1_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[2] = .{
-            .x = ROW_2_LOCUS.x,
-            .y = ROW_2_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[3] = .{
-            .x = ROW_3_LOCUS.x,
-            .y = ROW_3_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[4] = .{
-            .x = ROW_4_LOCUS.x,
-            .y = ROW_4_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[5] = .{
-            .x = ROW_5_LOCUS.x,
-            .y = ROW_5_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[6] = .{
-            .x = ROW_6_LOCUS.x,
-            .y = ROW_6_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[7] = .{
-            .x = ROW_7_LOCUS.x,
-            .y = ROW_7_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[8] = .{
-            .x = WASTE_LOCUS.x,
-            .y = WASTE_LOCUS.y,
-            .angle = 0.0,
-            .u = 1,
-            .v = 4,
-        };
-
-        instance_data[9] = .{
-            .x = SPADES_LOCUS.x,
-            .y = SPADES_LOCUS.y,
-            .angle = 0.0,
-            .u = 2,
-            .v = 4,
-        };
-
-        instance_data[10] = .{
-            .x = HEARTS_LOCUS.x,
-            .y = HEARTS_LOCUS.y,
-            .angle = 0.0,
-            .u = 3,
-            .v = 4,
-        };
-
-        instance_data[11] = .{
-            .x = DIAMONDS_LOCUS.x,
-            .y = DIAMONDS_LOCUS.y,
-            .angle = 0.0,
-            .u = 4,
-            .v = 4,
-        };
-
-        instance_data[12] = .{
-            .x = CLUBS_LOCUS.x,
-            .y = CLUBS_LOCUS.y,
-            .angle = 0.0,
-            .u = 5,
-            .v = 4,
-        };
+        instance_data[0] = vertex(STOCK_LOCUS, 1, 4);
+        instance_data[1] = vertex(ROW_1_LOCUS, 1, 4);
+        instance_data[2] = vertex(ROW_2_LOCUS, 1, 4);
+        instance_data[3] = vertex(ROW_3_LOCUS, 1, 4);
+        instance_data[4] = vertex(ROW_4_LOCUS, 1, 4);
+        instance_data[5] = vertex(ROW_5_LOCUS, 1, 4);
+        instance_data[6] = vertex(ROW_6_LOCUS, 1, 4);
+        instance_data[7] = vertex(ROW_7_LOCUS, 1, 4);
+        instance_data[8] = vertex(WASTE_LOCUS, 1, 4);
+        instance_data[9] = vertex(SPADES_LOCUS, 2, 4);
+        instance_data[10] = vertex(HEARTS_LOCUS, 3, 4);
+        instance_data[11] = vertex(DIAMONDS_LOCUS, 4, 4);
+        instance_data[12] = vertex(CLUBS_LOCUS, 5, 4);
 
         var i: usize = 0;
         {
@@ -401,4 +312,14 @@ export fn frame(userdata: ?*anyopaque) void {
 
 export fn cleanup() void {
     sg.shutdown();
+}
+
+fn vertex(locus: Point, u: f32, v: f32) Vertex {
+    return .{
+        .x = locus.x,
+        .y = locus.y,
+        .angle = 0.0,
+        .u = u,
+        .v = v,
+    };
 }
