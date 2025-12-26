@@ -23,11 +23,11 @@
 
 ## Cool additions
 
+- [x] sloppy mode
+- [x] Use sokol
 - [ ] Scoring
 - [ ] Three-card draw
 - [ ] Cool card artwork
-- [x] sloppy mode
 - [ ] Screen shake!
 - [ ] Messy mode
 - [ ] emscripten
-- [ ] Use sokol
