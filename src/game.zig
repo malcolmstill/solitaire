@@ -221,6 +221,9 @@ pub const Game = struct {
         }
     };
 
+    /// Return iterator for every card in the game
+    ///
+    /// TODO: also return cards-in-hand
     pub fn iterator(game: *Game) Iterator {
         return .{
             .game = game,

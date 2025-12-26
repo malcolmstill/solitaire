@@ -15,7 +15,24 @@ const CARD_STROKE_HEIGHT = @import("geom.zig").CARD_STROKE_HEIGHT;
 const SCREEN_WIDTH = @import("geom.zig").SCREEN_WIDTH;
 const SCREEN_HEIGHT = @import("geom.zig").SCREEN_HEIGHT;
 
-const N = 52;
+const ROW_1_LOCUS = @import("game.zig").ROW_1_LOCUS;
+const ROW_2_LOCUS = @import("game.zig").ROW_2_LOCUS;
+const ROW_3_LOCUS = @import("game.zig").ROW_3_LOCUS;
+const ROW_4_LOCUS = @import("game.zig").ROW_4_LOCUS;
+const ROW_5_LOCUS = @import("game.zig").ROW_5_LOCUS;
+const ROW_6_LOCUS = @import("game.zig").ROW_6_LOCUS;
+const ROW_7_LOCUS = @import("game.zig").ROW_7_LOCUS;
+
+const SPADES_LOCUS = @import("game.zig").SPADES_LOCUS;
+const HEARTS_LOCUS = @import("game.zig").HEARTS_LOCUS;
+const DIAMONDS_LOCUS = @import("game.zig").DIAMONDS_LOCUS;
+const CLUBS_LOCUS = @import("game.zig").CLUBS_LOCUS;
+
+const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
+const WASTE_LOCUS = @import("game.zig").WASTE_LOCUS;
+
+const NUM_CARDS = 52;
+const NUM_EMPTY = 1 + 1 + 7 + 4; // Number of empty locations
 
 const Vertex = extern struct { x: f32, y: f32, angle: f32, u: f32, v: f32 };
 
@@ -149,7 +166,7 @@ export fn init() void {
     std.debug.assert(@sizeOf(Vertex) == 20);
     state.bindings.vertex_buffers[1] = sg.makeBuffer(.{
         .usage = .{ .stream_update = true },
-        .size = N * @sizeOf(Vertex),
+        .size = (NUM_EMPTY + NUM_CARDS) * @sizeOf(Vertex),
     });
 
     state.pipeline = sg.makePipeline(.{
@@ -214,7 +231,111 @@ export fn frame(userdata: ?*anyopaque) void {
         });
         defer sg.endPass();
 
-        var instance_data: [N]Vertex = undefined;
+        var instance_data: [NUM_EMPTY + NUM_CARDS]Vertex = undefined;
+
+        instance_data[0] = .{
+            .x = STOCK_LOCUS.x,
+            .y = STOCK_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[1] = .{
+            .x = ROW_1_LOCUS.x,
+            .y = ROW_1_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[2] = .{
+            .x = ROW_2_LOCUS.x,
+            .y = ROW_2_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[3] = .{
+            .x = ROW_3_LOCUS.x,
+            .y = ROW_3_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[4] = .{
+            .x = ROW_4_LOCUS.x,
+            .y = ROW_4_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[5] = .{
+            .x = ROW_5_LOCUS.x,
+            .y = ROW_5_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[6] = .{
+            .x = ROW_6_LOCUS.x,
+            .y = ROW_6_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[7] = .{
+            .x = ROW_7_LOCUS.x,
+            .y = ROW_7_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[8] = .{
+            .x = WASTE_LOCUS.x,
+            .y = WASTE_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[9] = .{
+            .x = SPADES_LOCUS.x,
+            .y = SPADES_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[10] = .{
+            .x = HEARTS_LOCUS.x,
+            .y = HEARTS_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[11] = .{
+            .x = DIAMONDS_LOCUS.x,
+            .y = DIAMONDS_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
+
+        instance_data[12] = .{
+            .x = CLUBS_LOCUS.x,
+            .y = CLUBS_LOCUS.y,
+            .angle = 0.0,
+            .u = 1,
+            .v = 4,
+        };
 
         var i: usize = 0;
         {
@@ -228,7 +349,7 @@ export fn frame(userdata: ?*anyopaque) void {
                 const position = game.locations.get(card).currentWithRot();
                 const uv = texcoordsU16(card, direction);
 
-                instance_data[i] = .{
+                instance_data[NUM_EMPTY + i] = .{
                     .x = position.locus.x,
                     .y = position.locus.y,
                     .angle = position.angle,
@@ -250,7 +371,7 @@ export fn frame(userdata: ?*anyopaque) void {
                 const position = game.locations.get(card).currentWithRot();
                 const uv = texcoordsU16(card, direction);
 
-                instance_data[i] = .{
+                instance_data[NUM_EMPTY + i] = .{
                     .x = position.locus.x,
                     .y = position.locus.y,
                     .angle = position.angle,
@@ -272,7 +393,7 @@ export fn frame(userdata: ?*anyopaque) void {
         sg.applyUniforms(shd.UB_vs_params, sg.asRange(&orth.entries));
 
         // Draw all the cards
-        sg.draw(0, 6, N);
+        sg.draw(0, 6, NUM_EMPTY + NUM_CARDS);
     }
 
     sg.commit();

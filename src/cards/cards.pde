@@ -132,18 +132,27 @@ void draw() {
   
   // Render back
   pg.pushMatrix();
-  pg.translate(0*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
+    pg.translate(0*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
+    
+    // Draw card
+    pg.fill(255);
+    pg.stroke(40);
+    pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
+    
+    // Draw inlay
+    pg.fill(225, 95, 95);
+    pg.noStroke();
+    pg.rect(BACK_PADDING, BACK_PADDING, WIDTH-2*BACK_PADDING+1, HEIGHT-2*BACK_PADDING+1, 6);
+  pg.popMatrix();
   
-  // Draw card
-  pg.fill(255);
-  pg.stroke(40);
-  pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
-  
-  // Draw inlay
-  pg.fill(225, 95, 95);
-  pg.noStroke();
-  pg.rect(BACK_PADDING, BACK_PADDING, WIDTH-2*BACK_PADDING+1, HEIGHT-2*BACK_PADDING+1, 6);
-
+  // Render empty
+  pg.pushMatrix();
+    pg.translate(1*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
+    
+    // Draw card
+    pg.fill(30);
+    pg.stroke(40);
+    pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
   pg.popMatrix();
   
   background(0);
