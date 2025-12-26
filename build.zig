@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) !void {
     if (target.result.cpu.arch.isWasm()) {
         unreachable;
     } else {
-        // try buildNativeRaylib(b, target, optimize);
+        try buildNativeRaylib(b, target, optimize);
         try buildNativeSokol(b, target, optimize);
     }
 
@@ -31,7 +31,7 @@ fn buildNativeRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: 
     const raylib_lib = raylib.artifact("raylib");
 
     const exe = b.addExecutable(.{
-        .name = "game",
+        .name = "game-raylib",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main_raylib.zig"),
             .target = target,
@@ -48,7 +48,7 @@ fn buildNativeRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: 
         run_cmd.addArgs(args);
     }
 
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step("run-raylib", "Run the game (raylib)");
     run_step.dependOn(&run_cmd.step);
 }
 
@@ -75,7 +75,7 @@ fn buildNativeSokol(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
     });
 
     const exe = b.addExecutable(.{
-        .name = "game",
+        .name = "game-sokol",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main_sokol.zig"),
             .target = target,
@@ -95,6 +95,6 @@ fn buildNativeSokol(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
         run_cmd.addArgs(args);
     }
 
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step("run-sokol", "Run the game (sokol)");
     run_step.dependOn(&run_cmd.step);
 }
