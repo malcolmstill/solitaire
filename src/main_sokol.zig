@@ -17,7 +17,7 @@ const SCREEN_HEIGHT = @import("geom.zig").SCREEN_HEIGHT;
 
 const N = 52;
 
-const Vertex = extern struct { x: f32, y: f32, u: f32, v: f32 };
+const Vertex = extern struct { x: f32, y: f32, angle: f32, u: f32, v: f32 };
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -106,8 +106,8 @@ export fn init() void {
     });
 
     state.bindings.samplers[shd.SMP_samp] = sg.makeSampler(.{
-        .min_filter = sg.Filter.NEAREST,
-        .mag_filter = sg.Filter.NEAREST,
+        .min_filter = sg.Filter.LINEAR,
+        .mag_filter = sg.Filter.LINEAR,
     });
 
     //   0                          1
@@ -120,11 +120,11 @@ export fn init() void {
     // (0, 84) ----------------- (60, 84)
     //    3                        2
     const vertex_data = &[_]f32{
-        // positions                               | colors           |
-        0.0,               0.0,                0.0, 1.0, 0.0, 0.0, 1.0,
-        CARD_STROKE_WIDTH, 0.0,                0.0, 0.0, 1.0, 0.0, 1.0,
-        CARD_STROKE_WIDTH, CARD_STROKE_HEIGHT, 0.0, 0.0, 0.0, 1.0, 1.0,
-        0.0,               CARD_STROKE_HEIGHT, 0.0, 0.0, 0.0, 1.0, 1.0,
+        // positions                           | colors           |
+        0.0,               0.0,                1.0, 0.0, 0.0, 1.0,
+        CARD_STROKE_WIDTH, 0.0,                0.0, 1.0, 0.0, 1.0,
+        CARD_STROKE_WIDTH, CARD_STROKE_HEIGHT, 0.0, 0.0, 1.0, 1.0,
+        0.0,               CARD_STROKE_HEIGHT, 0.0, 0.0, 1.0, 1.0,
     };
 
     const index_data = &[_]u16{
@@ -146,7 +146,7 @@ export fn init() void {
     });
 
     // Pre-allocate instance data
-    std.debug.assert(@sizeOf(Vertex) == 16);
+    std.debug.assert(@sizeOf(Vertex) == 20);
     state.bindings.vertex_buffers[1] = sg.makeBuffer(.{
         .usage = .{ .stream_update = true },
         .size = N * @sizeOf(Vertex),
@@ -157,9 +157,10 @@ export fn init() void {
         .layout = init: {
             var l = sg.VertexLayoutState{};
 
-            l.attrs[shd.ATTR_cards_position] = .{ .format = .FLOAT3, .buffer_index = 0 };
+            l.attrs[shd.ATTR_cards_position] = .{ .format = .FLOAT2, .buffer_index = 0 };
             l.attrs[shd.ATTR_cards_colour0] = .{ .format = .FLOAT4, .buffer_index = 0 };
             l.attrs[shd.ATTR_cards_instance_pos] = .{ .format = .FLOAT2, .buffer_index = 1 };
+            l.attrs[shd.ATTR_cards_instance_angle] = .{ .format = .FLOAT, .buffer_index = 1 };
             l.attrs[shd.ATTR_cards_instance_texcoord] = .{ .format = .FLOAT2, .buffer_index = 1 };
 
             l.buffers[1].step_func = sg.VertexStep.PER_INSTANCE;
@@ -230,6 +231,7 @@ export fn frame(userdata: ?*anyopaque) void {
                 instance_data[i] = .{
                     .x = position.locus.x,
                     .y = position.locus.y,
+                    .angle = position.angle,
                     .u = uv.x,
                     .v = uv.y,
                 };
@@ -251,6 +253,7 @@ export fn frame(userdata: ?*anyopaque) void {
                 instance_data[i] = .{
                     .x = position.locus.x,
                     .y = position.locus.y,
+                    .angle = position.angle,
                     .u = uv.x,
                     .v = uv.y,
                 };
