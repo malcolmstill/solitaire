@@ -6,20 +6,20 @@ const Direction = @import("direction.zig").Direction;
 
 pub const Board = struct {
     stock: Stack(52) = .{},
-    waste: Stack(24) = .{},
+    waste: Stack(52) = .{},
 
-    row_1: Stack(24) = .{},
-    row_2: Stack(24) = .{},
-    row_3: Stack(24) = .{},
-    row_4: Stack(24) = .{},
-    row_5: Stack(24) = .{},
-    row_6: Stack(24) = .{},
-    row_7: Stack(24) = .{},
+    row_1: Stack(52) = .{},
+    row_2: Stack(52) = .{},
+    row_3: Stack(52) = .{},
+    row_4: Stack(52) = .{},
+    row_5: Stack(52) = .{},
+    row_6: Stack(52) = .{},
+    row_7: Stack(52) = .{},
 
-    spades: Stack(24) = .{},
-    hearts: Stack(24) = .{},
-    diamonds: Stack(24) = .{},
-    clubs: Stack(24) = .{},
+    spades: Stack(52) = .{},
+    hearts: Stack(52) = .{},
+    diamonds: Stack(52) = .{},
+    clubs: Stack(52) = .{},
 
     pub const Rows = enum {
         row_1,
@@ -78,7 +78,7 @@ pub const Board = struct {
         };
     }
 
-    fn peekDestination(board: Board, destination: Destination) ?Stack(24).StackEntry {
+    fn peekDestination(board: Board, destination: Destination) ?Stack(52).StackEntry {
         return switch (destination) {
             .row_1 => board.row_1.peek(),
             .row_2 => board.row_2.peek(),
@@ -94,7 +94,7 @@ pub const Board = struct {
         };
     }
 
-    pub fn move(board: *Board, cards: Stack(24), dest: Destination) !void {
+    pub fn move(board: *Board, cards: Stack(52), dest: Destination) !void {
         if (!board.isMoveValid(cards, dest)) return error.InvalidMove;
 
         switch (dest) {
@@ -115,7 +115,7 @@ pub const Board = struct {
     }
 
     // Return a card to its source where a move is invalid
-    pub fn returnCards(board: *Board, cards: Stack(24), src: Source) void {
+    pub fn returnCards(board: *Board, cards: Stack(52), src: Source) void {
         switch (src) {
             .waste => board.waste.pushCards(cards),
             .row_1 => board.row_1.pushCards(cards),
@@ -139,7 +139,7 @@ pub const Board = struct {
     /// Panics if `from` is empty.
     ///
     /// I think this needs to take into account faceupedness / facedownedness
-    pub fn isMoveValid(board: Board, cards: Stack(24), dest: Destination) bool {
+    pub fn isMoveValid(board: Board, cards: Stack(52), dest: Destination) bool {
         const dest_top = board.peekDestination(dest);
 
         // if (dest_top) |top| {

@@ -1,17 +1,18 @@
 pub const Point = struct {
     x: f32,
     y: f32,
-    z: f32,
 
-    pub fn new(x: f32, y: f32, z: f32) Point {
-        return .{ .x = x, .y = y, .z = z };
+    pub fn new(x: f32, y: f32) Point {
+        return .{
+            .x = x,
+            .y = y,
+        };
     }
 
     pub fn add(a: Point, b: Point) Point {
         return .{
             .x = a.x + b.x,
             .y = a.y + b.y,
-            .z = a.z + b.z,
         };
     }
 
@@ -19,7 +20,6 @@ pub const Point = struct {
         return .{
             .x = a.x + b.x,
             .y = a.y + b.y,
-            .z = a.z,
         };
     }
 
@@ -27,7 +27,6 @@ pub const Point = struct {
         return .{
             .x = a.x - b.x,
             .y = a.y - b.y,
-            .z = a.z - b.z,
         };
     }
 
@@ -35,7 +34,6 @@ pub const Point = struct {
         return .{
             .x = v.x,
             .y = v.y,
-            .z = 0.0,
         };
     }
 };

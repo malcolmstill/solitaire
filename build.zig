@@ -53,8 +53,7 @@ fn buildNativeRaylib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: 
 }
 
 fn buildNativeSokol(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) !void {
-    const raylib = b.dependency("raylib", .{});
-    const raylib_lib = raylib.artifact("raylib");
+    const zstbi = b.dependency("zstbi", .{});
     const dep_sokol = b.dependency("sokol", .{
         .target = target,
         .optimize = optimize,
@@ -83,11 +82,11 @@ fn buildNativeSokol(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "sokol", .module = dep_sokol.module("sokol") },
+                .{ .name = "zstbi", .module = zstbi.module("root") },
             },
         }),
     });
     exe.step.dependOn(shdc_step);
-    exe.linkLibrary(raylib_lib);
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);

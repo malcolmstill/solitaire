@@ -6,6 +6,7 @@ const Point = @import("point.zig").Point;
 const RotatedPosition = @import("card_locations.zig").RotatedPosition;
 const Direction = @import("direction.zig").Direction;
 const Game = @import("game.zig").Game;
+const texcoords = @import("geom.zig").texcoords;
 const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
 const CARD_STROKE = @import("geom.zig").CARD_STROKE;
 const CARD_WIDTH = @import("geom.zig").CARD_WIDTH;
@@ -88,26 +89,7 @@ pub const Renderer = struct {
 
         const target = renderer.cards;
 
-        const TexCoords = struct { x: f32, y: f32 };
-
-        const tex_coords: TexCoords = switch (direction) {
-            .faceup => block: {
-                const vertical_index: f32 = switch (card.suit) {
-                    .spades => 0.0,
-                    .hearts => 1.0,
-                    .diamonds => 2.0,
-                    .clubs => 3.0,
-                };
-
-                const x: f32 = @as(f32, @floatFromInt((card.rank.order() - 1))) * CARD_STROKE_WIDTH;
-                const y: f32 = vertical_index * CARD_STROKE_HEIGHT;
-
-                const coords: TexCoords = .{ .x = x, .y = y };
-
-                break :block coords;
-            },
-            .facedown => .{ .x = 0.0, .y = 4 * CARD_STROKE_HEIGHT },
-        };
+        const tex_coords = texcoords(card, direction);
 
         ray.DrawTexturePro(
             target,

@@ -26,7 +26,7 @@ pub fn Stack(comptime N: u16) type {
             stack.array[stack.count] = .{ .card = card, .direction = direction };
         }
 
-        pub fn pushCards(stack: *Self, cards: Stack(24)) void {
+        pub fn pushCards(stack: *Self, cards: Stack(52)) void {
             defer stack.count += cards.size();
 
             for (stack.count..stack.count + cards.size(), 0..) |i, j| {
@@ -86,7 +86,7 @@ pub fn Stack(comptime N: u16) type {
             return new_stack;
         }
 
-        const ForwardIterator = struct {
+        pub const ForwardIterator = struct {
             stack: *const Self,
             position: usize,
 
@@ -105,8 +105,8 @@ pub fn Stack(comptime N: u16) type {
             return .{ .stack = stack, .position = 0 };
         }
 
-        const StackIterator = struct {
-            stack: *const Self,
+        pub const StackIterator = struct {
+            stack: *Self,
             position: usize,
 
             pub fn next(it: *StackIterator) ?StackEntry {
