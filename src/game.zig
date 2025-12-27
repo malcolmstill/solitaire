@@ -3,16 +3,13 @@ const Board = @import("board.zig").Board;
 const Card = @import("card.zig").Card;
 const Stack = @import("stack.zig").Stack;
 const Point = @import("point.zig").Point;
+const Vec2D = @import("point.zig").Vec2D;
 const Position = @import("card_locations.zig").Position;
 const Direction = @import("direction.zig").Direction;
 const CardLocations = @import("card_locations.zig").CardLocations;
 const CARD_WIDTH = @import("geom.zig").CARD_WIDTH;
 const CARD_HEIGHT = @import("geom.zig").CARD_HEIGHT;
-const CARD_STROKE = @import("geom.zig").CARD_STROKE;
 const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
-const Renderer = @import("render.zig").Renderer;
-const renderDebug = @import("render.zig").renderDebug;
-const renderEmpty = @import("render.zig").renderEmpty;
 
 // We need some sort of game state that at a minimum tells
 // us if we have a card in hand.
@@ -25,10 +22,10 @@ const GameState = struct {
 };
 
 const CardsInHand = struct {
-    stack: Stack(24),
+    stack: Stack(52),
     source: Board.Source,
-    initial_card_locus: Point,
-    initial_mouse: Point,
+    initial_card_locus: Vec2D,
+    initial_mouse: Vec2D,
 };
 
 pub const Game = struct {
@@ -39,7 +36,6 @@ pub const Game = struct {
     history: std.ArrayList(Board),
     state: GameState,
     locations: CardLocations,
-    renderer: Renderer,
     stack_locus: struct {
         stock: Point = STOCK_LOCUS,
         waste: Point = WASTE_LOCUS,
@@ -61,13 +57,19 @@ pub const Game = struct {
 
         var locations = CardLocations.init(allocator, sloppy);
 
-        const renderer = try Renderer.init(&locations);
+        std.debug.print("Setting initial card positions\n", .{});
+        for (std.meta.tags(Card.Suit)) |suit| {
+            for (std.meta.tags(Card.Rank)) |rank| {
+                try locations.set(Card.of(rank, suit), STOCK_LOCUS);
+            }
+        }
+
+        std.debug.print("Returning Game\n", .{});
 
         return .{
             .debug = debug,
             .sloppy = sloppy,
             .board = try Game.deal(seed, &locations),
-            .renderer = renderer,
             .history = std.ArrayList(Board){},
             .state = .{},
             .locations = locations,
@@ -198,93 +200,97 @@ pub const Game = struct {
         return board;
     }
 
-    pub fn update(game: *Game, card: Card, dest: Board.Destination) !void {
-        const old_board = game.board;
-        const board = old_board.move(card, dest);
+    pub const Iterator = struct {
+        game: *Game,
+        index: usize,
+        iterators: [13]Stack(52).ForwardIterator,
 
-        try game.history.append(old_board);
+        pub fn next(it: *Iterator) ?Stack(52).StackEntry {
+            const maybe_entry = it.iterators[it.index].next();
 
-        game.board = board;
-    }
+            if (maybe_entry) |entry| {
+                return entry;
+            } else {
+                for (it.index + 1..it.iterators.len) |i| {
+                    if (it.iterators[i].next()) |nxt| {
+                        it.index = i;
 
-    pub fn draw(game: *Game, dt: f32) void {
-        game.drawStack("stock", dt);
-        game.drawStack("waste", dt);
-
-        // Rows
-        game.drawStack("row_1", dt);
-        game.drawStack("row_2", dt);
-        game.drawStack("row_3", dt);
-        game.drawStack("row_4", dt);
-        game.drawStack("row_5", dt);
-        game.drawStack("row_6", dt);
-        game.drawStack("row_7", dt);
-
-        // Suit piles
-        game.drawStack("spades", dt);
-        game.drawStack("hearts", dt);
-        game.drawStack("diamonds", dt);
-        game.drawStack("clubs", dt);
-
-        // Debug draw dest
-        if (game.debug) {
-            if (game.state.cards_in_hand) |in_hand| {
-                if (game.findDropDest()) |dst| {
-                    renderDebug(dst.locus, game.board.isMoveValid(in_hand.stack, dst.dest));
+                        return nxt;
+                    }
                 }
+
+                return null;
             }
         }
+    };
 
-        if (game.state.cards_in_hand) |*cards_in_hand| {
-            // card_in_hand.card.draw();
-            for (cards_in_hand.stack.slice()) |entry| {
-                game.drawCard(entry.card, entry.direction, dt);
-            }
-        }
+    /// Return iterator for every card in the game
+    ///
+    /// TODO: also return cards-in-hand
+    pub fn iterator(game: *Game) Iterator {
+        return .{
+            .game = game,
+            .index = 0,
+            .iterators = [13]Stack(52).ForwardIterator{
+                game.board.stock.forwardIterator(),
+                game.board.waste.forwardIterator(),
+                game.board.spades.forwardIterator(),
+                game.board.hearts.forwardIterator(),
+                game.board.diamonds.forwardIterator(),
+                game.board.clubs.forwardIterator(),
+                game.board.row_7.forwardIterator(),
+                game.board.row_6.forwardIterator(),
+                game.board.row_5.forwardIterator(),
+                game.board.row_4.forwardIterator(),
+                game.board.row_3.forwardIterator(),
+                game.board.row_2.forwardIterator(),
+                game.board.row_1.forwardIterator(),
+            },
+        };
     }
 
-    fn drawStack(game: *Game, comptime stack: []const u8, dt: f32) void {
-        //
-        const slice = @field(game.board, stack).slice();
-        const stack_locus = @field(game.stack_locus, stack);
+    /// Update the game state based upon dt
+    ///
+    /// At the moment this only updates card positions for animation
+    pub fn update(game: *Game, dt: f32) void {
+        var it = game.locations.iterator();
 
-        // Draw "empty" pile
-        renderEmpty(stack_locus);
-
-        // Draw the cards
-        for (slice) |entry| {
-            game.drawCard(entry.card, entry.direction, dt);
+        while (it.next()) |entry| {
+            const card = entry.key_ptr.*;
+            _ = game.locations.update(card, dt);
         }
-    }
-
-    pub fn drawCard(game: *Game, card: Card, direction: Direction, dt: f32) void {
-        const position = game.locations.update(card, dt);
-
-        game.renderer.renderCard(card, position, direction);
     }
 
     pub fn handleButtonDown(game: *Game, mouse_x: f32, mouse_y: f32) !void {
         // If we have a card in hand our button was already done
         if (game.state.cards_in_hand) |_| return;
 
-        // If we click on the stock, deal from it
+        // If we click on the stock
         if (game.stockClicked(mouse_x, mouse_y)) {
             if (game.board.stock.size() > 0) {
+                // ...deal from it if there are some cards
                 const entry = game.board.stock.pop();
                 game.board.waste.push(entry.card, .faceup);
 
                 const stack_locus = game.stack_locus.waste;
 
-                const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+                const locus: Point = .{
+                    .x = stack_locus.x,
+                    .y = stack_locus.y,
+                };
 
                 try game.locations.set(entry.card, locus);
             } else {
+                // ...else move cards from waste back to stock
                 while (game.board.waste.popOrNull()) |entry| {
                     game.board.stock.push(entry.card, .facedown);
 
                     const stack_locus = game.stack_locus.stock;
 
-                    const locus: Point = .{ .x = stack_locus.x, .y = stack_locus.y };
+                    const locus: Point = .{
+                        .x = stack_locus.x,
+                        .y = stack_locus.y,
+                    };
 
                     try game.locations.set(entry.card, locus);
                 }
@@ -298,6 +304,9 @@ pub const Game = struct {
             return;
         }
 
+        // FIXME: cards we've picked up need to be above all other cards
+        // and correctly ordered
+
         // Otherwise try and pick up one or more face up cards
         if (game.findCardsToPickUp(mouse_x, mouse_y)) |card_source| {
             const locus = game.locations.get(card_source.stack.array[0].card).current();
@@ -305,8 +314,14 @@ pub const Game = struct {
             game.state.cards_in_hand = .{
                 .stack = card_source.stack,
                 .source = card_source.source,
-                .initial_card_locus = .{ .x = locus.x, .y = locus.y },
-                .initial_mouse = .{ .x = mouse_x, .y = mouse_y },
+                .initial_card_locus = .{
+                    .x = locus.x,
+                    .y = locus.y,
+                },
+                .initial_mouse = .{
+                    .x = mouse_x,
+                    .y = mouse_y,
+                },
             };
         }
     }
@@ -335,6 +350,9 @@ pub const Game = struct {
                     // the shift that we otherwise get from offset.
                     const empty = if (dst.count == 0) offset else 0.0;
 
+                    // FIXME: placed cards should be updated to be correctly
+                    // z-ordered
+
                     var it = in_hand_stack.forwardIterator();
                     var i: usize = 1;
                     while (it.next()) |entry| {
@@ -361,13 +379,17 @@ pub const Game = struct {
 
             game.board.returnCards(in_hand_stack, source);
 
+            // FIXME: when we put cards back they need to be correctly z-ordered
+
             // Put cards back in correct location
             var it = in_hand_stack.forwardIterator();
             var i: usize = 0;
             while (it.next()) |entry| {
                 defer i += 1;
-                var locus = cards_in_hand.initial_card_locus;
+
+                var locus = Point.fromVec2D(cards_in_hand.initial_card_locus);
                 locus.y += CARD_STACK_OFFSET * @as(f32, @floatFromInt(i));
+
                 try game.locations.startAnimation(entry.card, locus);
             }
 
@@ -400,11 +422,11 @@ pub const Game = struct {
         // Look at each valid destination pile (everything but stock and waste)
         inline for (comptime std.meta.tags(Board.Destination)) |dst| {
             const stack_locus: Point = @field(game.stack_locus, @tagName(dst));
-            const stack: Stack(24) = @field(game.board, @tagName(dst));
+            const stack: Stack(52) = @field(game.board, @tagName(dst));
 
             // Use centre of card to decide if enough card is covering destination
             const card_locus = game.locations.get(in_hand.stack.array[0].card).current();
-            const pointer: Point = .{
+            const pointer: Vec2D = .{
                 .x = card_locus.x + CARD_WIDTH / 2,
                 .y = card_locus.y + CARD_HEIGHT / 2,
             };
@@ -451,7 +473,7 @@ pub const Game = struct {
     // FIXME: we need to check to more than just the top of a stack, as we need to be able to move
     //        more than one card at a time.
     /// Find card under cusror
-    pub fn findCardsToPickUp(game: *Game, x: f32, y: f32) ?struct { stack: Stack(24), source: Board.Source } {
+    pub fn findCardsToPickUp(game: *Game, x: f32, y: f32) ?struct { stack: Stack(52), source: Board.Source } {
         inline for (comptime std.meta.tags(Board.Source)) |src| {
             var it = @field(game.board, @tagName(src)).iterator();
 
@@ -485,8 +507,14 @@ pub const Game = struct {
             const new_x = cards_in_hand.initial_card_locus.x + mouse_x - cards_in_hand.initial_mouse.x;
             const new_y = cards_in_hand.initial_card_locus.y + mouse_y - cards_in_hand.initial_mouse.y;
 
+            // FIXME: ensure correct ordering.
+            // Note: maybe the below is totally fine as the pick up should set the z-values
+
             for (cards_in_hand.stack.slice(), 0..) |entry, i| {
-                try game.locations.set(entry.card, .{ .x = new_x, .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)) });
+                try game.locations.set(entry.card, .{
+                    .x = new_x,
+                    .y = new_y + CARD_STACK_OFFSET * @as(f32, @floatFromInt(i)),
+                });
             }
         }
     }

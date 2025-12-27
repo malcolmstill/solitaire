@@ -1,8 +1,7 @@
 const r = @cImport(@cInclude("raylib.h"));
 const std = @import("std");
-
-const CardVisual = @import("card.zig").CardVisual;
 const Game = @import("game.zig").Game;
+const Renderer = @import("renderer_raylib.zig").Renderer;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -38,6 +37,8 @@ pub fn main() !void {
     r.InitWindow(600, 400, "");
     r.SetTargetFPS(60);
     defer r.CloseWindow();
+
+    const renderer = try Renderer.init();
 
     var game = try Game.init(allocator, seed, sloppy, debug);
     defer game.deinit(allocator);
@@ -97,7 +98,11 @@ pub fn main() !void {
 
         game.assert_consistent();
 
-        game.draw(r.GetFrameTime());
+        const dt = r.GetFrameTime();
+
+        game.update(dt);
+
+        renderer.drawGame(&game);
     }
 }
 
@@ -105,6 +110,7 @@ test {
     _ = @import("card.zig");
     _ = @import("card_locations.zig");
     _ = @import("board.zig");
+    _ = @import("maths.zig");
     _ = @import("point.zig");
     _ = @import("stack.zig");
 }

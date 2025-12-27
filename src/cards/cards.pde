@@ -10,7 +10,7 @@ int WIDTH_WITH_STROKE = WIDTH + 1;
 int HEIGHT_WITH_STROKE = HEIGHT + 1;
 
 int BACK_PADDING = 8;
-int CARD_RADIUS = 11;
+int CARD_RADIUS = 9;
 
 void setup() {
   pixelDensity(1);
@@ -132,19 +132,46 @@ void draw() {
   
   // Render back
   pg.pushMatrix();
-  pg.translate(0*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
-  
-  // Draw card
-  pg.fill(255);
-  pg.stroke(40);
-  pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
-  
-  // Draw inlay
-  pg.fill(225, 95, 95);
-  pg.noStroke();
-  pg.rect(BACK_PADDING, BACK_PADDING, WIDTH-2*BACK_PADDING+1, HEIGHT-2*BACK_PADDING+1, 6);
-
+    pg.translate(0*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
+    
+    // Draw card
+    pg.fill(255);
+    pg.stroke(40);
+    pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
+    
+    // Draw inlay
+    pg.fill(225, 95, 95);
+    pg.noStroke();
+    pg.rect(BACK_PADDING, BACK_PADDING, WIDTH-2*BACK_PADDING+1, HEIGHT-2*BACK_PADDING+1, 6);
   pg.popMatrix();
+  
+  // Render empty
+  pg.pushMatrix();
+    pg.translate(1*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
+    
+    // Draw card
+    pg.fill(100);
+    pg.stroke(40);
+    pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
+  pg.popMatrix();
+  
+  // Render empty spades, hearts, etc
+  for (int suit = 0; suit < 4; suit ++) {
+    String suit_char = suitCharacter(suit);
+    pg.pushMatrix();
+      pg.translate((suit+2)*WIDTH_WITH_STROKE, 4*HEIGHT_WITH_STROKE);
+      
+      // Draw card
+      pg.fill(100);
+      pg.stroke(40);
+      pg.rect(0, 0, WIDTH, HEIGHT, CARD_RADIUS);
+      
+      
+      pg.fill(80);
+      pg.textFont(gbl);
+      pg.text(suit_char, WIDTH/2 + STROKE_WIDTH, HEIGHT/2 + STROKE_WIDTH - 3);
+    pg.popMatrix();
+  }
   
   background(0);
   image(pg, 0, 0);

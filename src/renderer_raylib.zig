@@ -4,8 +4,9 @@ const std = @import("std");
 const Card = @import("card.zig").Card;
 const Point = @import("point.zig").Point;
 const RotatedPosition = @import("card_locations.zig").RotatedPosition;
-const CardLocations = @import("card_locations.zig").CardLocations;
 const Direction = @import("direction.zig").Direction;
+const Game = @import("game.zig").Game;
+const texcoords = @import("geom.zig").texcoords;
 const STOCK_LOCUS = @import("geom.zig").STOCK_LOCUS;
 const CARD_STROKE = @import("geom.zig").CARD_STROKE;
 const CARD_WIDTH = @import("geom.zig").CARD_WIDTH;
@@ -19,45 +20,76 @@ const CARD_BACK_HEIGHT = @import("geom.zig").CARD_BACK_HEIGHT;
 pub const Renderer = struct {
     cards: ray.Texture,
 
-    pub fn init(locations: *CardLocations) !Renderer {
+    pub fn init() !Renderer {
         const cards = loadPng("cards.png");
-
-        for (std.meta.tags(Card.Suit)) |suit| {
-            for (std.meta.tags(Card.Rank)) |rank| {
-                try locations.set(Card.of(rank, suit), STOCK_LOCUS);
-            }
-        }
 
         return .{
             .cards = cards,
         };
     }
 
-    pub fn renderCard(renderer: *Renderer, card: Card, position: RotatedPosition, direction: Direction) void {
+    pub fn drawGame(renderer: *const Renderer, game: *Game) void {
+        renderer.drawStack(game, "stock");
+        renderer.drawStack(game, "waste");
+
+        // Rows
+        renderer.drawStack(game, "row_1");
+        renderer.drawStack(game, "row_2");
+        renderer.drawStack(game, "row_3");
+        renderer.drawStack(game, "row_4");
+        renderer.drawStack(game, "row_5");
+        renderer.drawStack(game, "row_6");
+        renderer.drawStack(game, "row_7");
+
+        // Suit piles
+        renderer.drawStack(game, "spades");
+        renderer.drawStack(game, "hearts");
+        renderer.drawStack(game, "diamonds");
+        renderer.drawStack(game, "clubs");
+
+        // Debug draw dest
+        if (game.debug) {
+            if (game.state.cards_in_hand) |in_hand| {
+                if (game.findDropDest()) |dst| {
+                    renderDebug(dst.locus, game.board.isMoveValid(in_hand.stack, dst.dest));
+                }
+            }
+        }
+
+        if (game.state.cards_in_hand) |*cards_in_hand| {
+            // card_in_hand.card.draw();
+            for (cards_in_hand.stack.slice()) |entry| {
+                renderer.drawCard(game, entry.card, entry.direction);
+            }
+        }
+    }
+
+    fn drawStack(renderer: *const Renderer, game: *Game, comptime stack: []const u8) void {
+        //
+        const slice = @field(game.board, stack).slice();
+        const stack_locus = @field(game.stack_locus, stack);
+
+        // Draw "empty" pile
+        renderEmpty(stack_locus);
+
+        // Draw the cards
+        for (slice) |entry| {
+            renderer.drawCard(game, entry.card, entry.direction);
+        }
+    }
+
+    fn drawCard(renderer: *const Renderer, game: *Game, card: Card, direction: Direction) void {
+        const position = game.locations.get(card).currentWithRot();
+
+        renderer.renderCard(card, position, direction);
+    }
+
+    pub fn renderCard(renderer: *const Renderer, card: Card, position: RotatedPosition, direction: Direction) void {
         const locus = position.locus;
 
         const target = renderer.cards;
 
-        const TexCoords = struct { x: f32, y: f32 };
-
-        const tex_coords: TexCoords = switch (direction) {
-            .faceup => block: {
-                const vertical_index: f32 = switch (card.suit) {
-                    .spades => 0.0,
-                    .hearts => 1.0,
-                    .diamonds => 2.0,
-                    .clubs => 3.0,
-                };
-
-                const x: f32 = @as(f32, @floatFromInt((card.rank.order() - 1))) * CARD_STROKE_WIDTH;
-                const y: f32 = vertical_index * CARD_STROKE_HEIGHT;
-
-                const coords: TexCoords = .{ .x = x, .y = y };
-
-                break :block coords;
-            },
-            .facedown => .{ .x = 0.0, .y = 4 * CARD_STROKE_HEIGHT },
-        };
+        const tex_coords = texcoords(card, direction);
 
         ray.DrawTexturePro(
             target,
