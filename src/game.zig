@@ -57,11 +57,14 @@ pub const Game = struct {
 
         var locations = CardLocations.init(allocator, sloppy);
 
+        std.debug.print("Setting initial card positions\n", .{});
         for (std.meta.tags(Card.Suit)) |suit| {
             for (std.meta.tags(Card.Rank)) |rank| {
                 try locations.set(Card.of(rank, suit), STOCK_LOCUS);
             }
         }
+
+        std.debug.print("Returning Game\n", .{});
 
         return .{
             .debug = debug,
@@ -228,7 +231,7 @@ pub const Game = struct {
         return .{
             .game = game,
             .index = 0,
-            .iterators = [_]Stack(52).ForwardIterator{
+            .iterators = [13]Stack(52).ForwardIterator{
                 game.board.stock.forwardIterator(),
                 game.board.waste.forwardIterator(),
                 game.board.spades.forwardIterator(),

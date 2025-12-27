@@ -37,12 +37,19 @@ const NUM_EMPTY = 1 + 1 + 7 + 4; // Number of empty locations
 
 const Vertex = extern struct { x: f32, y: f32, angle: f32, u: f32, v: f32 };
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+var game: Game = undefined;
+var arena: std.heap.ArenaAllocator = undefined;
+var allocator: std.mem.Allocator = undefined;
 
-    zstbi.init(allocator);
-    defer zstbi.deinit();
+const state = struct {
+    var bindings: sg.Bindings = .{};
+    var pipeline: sg.Pipeline = .{};
+    var pass_action: sg.PassAction = .{};
+};
+
+pub fn main() !void {
+    arena = std.heap.ArenaAllocator.init(std.heap.c_allocator);
+    allocator = arena.allocator();
 
     var debug = false;
     var sloppy = false;
@@ -71,14 +78,16 @@ pub fn main() !void {
         @panic("Expected integer seed");
     }
 
-    var game = try Game.init(allocator, seed, sloppy, debug);
-    defer game.deinit(allocator);
+    game = try Game.init(allocator, seed, sloppy, debug);
 
+    std.debug.print("Starting main loop\n", .{});
+    // For native .run will block, for wasm main will actually return
+    // as such we can't do things like defer memory allocator clean up
+    // as that will run too early.
     sapp.run(.{
-        .user_data = @ptrCast(&game),
         .init_cb = init,
-        .event_userdata_cb = event,
-        .frame_userdata_cb = frame,
+        .event_cb = event,
+        .frame_cb = frame,
         .cleanup_cb = cleanup,
         .width = SCREEN_WIDTH,
         .height = SCREEN_HEIGHT,
@@ -86,15 +95,14 @@ pub fn main() !void {
         .window_title = "solitaire",
         .logger = .{ .func = slog.func },
     });
+
+    std.debug.print("main exiting\n", .{});
 }
 
-const state = struct {
-    var bindings: sg.Bindings = .{};
-    var pipeline: sg.Pipeline = .{};
-    var pass_action: sg.PassAction = .{};
-};
-
 export fn init() void {
+    zstbi.init(allocator);
+    defer zstbi.deinit();
+
     sg.setup(.{
         .environment = sglue.environment(),
         .logger = .{ .func = slog.func },
@@ -201,9 +209,7 @@ export fn init() void {
     });
 }
 
-export fn event(ev: [*c]const sapp.Event, userdata: ?*anyopaque) void {
-    var game: *Game = @ptrCast(@alignCast(userdata orelse unreachable));
-
+export fn event(ev: [*c]const sapp.Event) void {
     // FIXME: we are ignoring errors from handle*
     //
     // Let's make those functions not error...we should be preallocating
@@ -219,9 +225,7 @@ export fn event(ev: [*c]const sapp.Event, userdata: ?*anyopaque) void {
     }
 }
 
-export fn frame(userdata: ?*anyopaque) void {
-    var game: *Game = @ptrCast(@alignCast(userdata orelse unreachable));
-
+export fn frame() void {
     const dt: f32 = @floatCast(sapp.frameDuration());
     game.update(dt);
 
@@ -312,6 +316,8 @@ export fn frame(userdata: ?*anyopaque) void {
 
 export fn cleanup() void {
     sg.shutdown();
+    game.deinit(allocator);
+    arena.deinit();
 }
 
 fn vertex(locus: Point, u: f32, v: f32) Vertex {

@@ -91,7 +91,6 @@ pub fn Stack(comptime N: u16) type {
             position: usize,
 
             pub fn next(it: *ForwardIterator) ?StackEntry {
-                // std.debug.print("next it.position = {} and it.stack.count = {}\n", .{ it.position, it.stack.count });
                 if (it.position == it.stack.count) return null;
 
                 defer it.position += 1;
@@ -101,7 +100,6 @@ pub fn Stack(comptime N: u16) type {
         };
 
         pub fn forwardIterator(stack: *const Self) ForwardIterator {
-            // std.debug.print("forwardIterator stack.position = {}, stack = {}\n", .{ stack.count, stack });
             return .{ .stack = stack, .position = 0 };
         }
 
